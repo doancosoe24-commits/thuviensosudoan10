@@ -106,7 +106,7 @@ function goDetail(slug){
 
  // sẽ là http://127.0.0.1:5500
 // Lấy dữ liệu từ Web App
-fetch(`${webAppUrl}?ref=${encodeURIComponent(window.location.origin)}`)
+fetch(`${webAppUrl}?ref=${encodeURIComponent(ref)}`)
   .then(res => res.json())
   .then(data => {
       console.log("Dữ liệu nhận được:", data);
