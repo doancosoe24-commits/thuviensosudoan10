@@ -153,7 +153,7 @@ loadHTML('footer','footer.html');
 }
  // sẽ là http://127.0.0.1:5500
     // Lấy dữ liệu từ Web App và render
-    fetch(`${webAppUrl}?ref=${encodeURIComponent(ref)}`)
+    fetch(`${webAppUrl}?ref=${encodeURIComponent(window.location.origin)}`)
       .then(res => res.json())
       .then(data => {
         const list = document.getElementById("list");
