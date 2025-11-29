@@ -108,7 +108,7 @@
   <div id="footer"></div>
 <script src="main.js"></script>
   <script>
-    const webAppUrl = "https://script.google.com/macros/s/AKfycbzgyV5SwuvbcEhZxuULBvErsTJvS_Oqd49QZN7EbzOj0SyaK10d6PGcWblc2EkrwIWc/exec";
+    const webAppUrl = "https://script.google.com/macros/s/AKfycbxPWbDglcBRiwZfzhE2RwpWtQu6zb8EMBPDTXgd7Hdw8djblc5AM2qRjvr3FEa6mtzL/exec";
 
    // Load header/footer và gắn sự kiện search
 function loadHTML(id, url) {
@@ -153,19 +153,34 @@ loadHTML('footer','footer.html');
 }
  // sẽ là http://127.0.0.1:5500
     // Lấy dữ liệu từ Web App và render
-    fetch(`${webAppUrl}?ref=${encodeURIComponent(window.location.origin)}`)
-      .then(res => res.json())
-      .then(data => {
-        const list = document.getElementById("list");
-        let html = "";
-        data.forEach(item => html += createItemHTML(item));
-        list.innerHTML = html;
-         console.log("Dữ liệu nhận được:", data); 
-      })
-      .catch(err => {
-        console.error("Lỗi khi lấy dữ liệu:", err);
-        document.getElementById("list").innerHTML = "<p>Không thể tải dữ liệu.</p>";
-      });
+   fetch(`${webAppUrl}?ref=${encodeURIComponent(ref)}`)
+  .then(res => res.json())
+  .then(data => {
+
+    // ✨ 1. Lọc category trùng → lấy 1 dòng duy nhất cho mỗi category
+    const uniqueMap = new Map();
+
+    data.forEach(row => {
+      if (!uniqueMap.has(row.category)) {
+        uniqueMap.set(row.category, row);
+      }
+    });
+
+    const uniqueCategories = Array.from(uniqueMap.values());
+
+    // ✨ 2. Render ra UI
+    const list = document.getElementById("list");
+    let html = "";
+    uniqueCategories.forEach(item => html += createItemHTML(item));
+    list.innerHTML = html;
+
+    console.log("Dữ liệu đã lọc category:", uniqueCategories);
+  })
+  .catch(err => {
+    console.error("Lỗi khi lấy dữ liệu:", err);
+    document.getElementById("list").innerHTML = "<p>Không thể tải dữ liệu.</p>";
+  });
+
 
       function goToList(slug){
   window.location.href = `list.html?slug=${slug}`;
