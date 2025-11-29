@@ -45,11 +45,14 @@ a:hover { text-decoration: underline; }
 </style>
 </head>
 <body>
+
 <main>
     <div id="header"></div>
+
     <span onclick="history.back()" style="color:#ccae6e;padding:10px;font-weight:600;text-decoration:underline;cursor:pointer;">
         Quay lại
     </span>
+
     <h2 id="docTitle"></h2>
 
     <div class="tabs-container">
@@ -61,13 +64,25 @@ a:hover { text-decoration: underline; }
 
     <div class="tab-detail" id="tabContent"></div>
 </main>
+
 <div id="footer"></div>
 
 <script>
-const webAppUrl = "https://script.google.com/macros/s/AKfycbzgyV5SwuvbcEhZxuULBvErsTJvS_Oqd49QZN7EbzOj0SyaK10d6PGcWblc2EkrwIWc/exec";
+/* ============================================================
+    HÀM TẠO SLUG THEO TITLE — GIỐNG FILE LIST.HTML
+============================================================ */
+function toSlug(text){
+  return text
+    .toLowerCase()
+    .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9\s-]/g, "")
+    .trim()
+    .replace(/\s+/g, "-");
+}
 
-const params = new URLSearchParams(window.location.search);
-const slug = params.get("slug");
+const webAppUrl = "https://script.google.com/macros/s/AKfycbxPWbDglcBRiwZfzhE2RwpWtQu6zb8EMBPDTXgd7Hdw8djblc5AM2qRjvr3FEa6mtzL/exec";
+
+const slugFromURL = new URLSearchParams(window.location.search).get("slug");
 const tabContent = document.getElementById("tabContent");
 const docTitle = document.getElementById("docTitle");
 const tabs = document.querySelectorAll(".tab-btn");
@@ -75,37 +90,54 @@ const underline = document.querySelector(".tab-underline");
 
 let currentData = null;
 
-// Cập nhật underline
+// Underline animation
 function updateUnderline(activeTab){
   underline.style.width = activeTab.offsetWidth + "px";
   underline.style.transform = `translateX(${activeTab.offsetLeft}px)`;
 }
 updateUnderline(document.querySelector(".tab-btn.active"));
 
-// Show tab content
+/* ============================================================
+    HIỂN THỊ NỘI DUNG TAB
+============================================================ */
+function formatDateVN(dateString){
+    if(!dateString) return "";
+    const d = new Date(dateString);
+    if(isNaN(d)) return dateString; // Nếu không phải ngày hợp lệ thì trả về nguyên gốc
+    return d.toLocaleString("vi-VN", {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+    });
+}
+
 function showTab(data, tab="info"){
   if(!data) return;
+
   const tabData = {
     info: `<table class="info-table">
              <tbody>
                <tr><th>Số hiệu</th><td>${data.sohieu}</td></tr>
                <tr><th>Nơi ban hành</th><td>${data.noibanhanh}</td></tr>
-               <tr><th>Ngày ban hành</th><td>${data.ngaybanhanh}</td></tr>
+               <tr><th>Ngày ban hành</th><td>${formatDateVN(data.ngaybanhanh)}</td></tr>
                <tr><th>Loại văn bản</th><td>${data.loaivanban}</td></tr>
                <tr><th>Người ký</th><td>${data.nguoiky}</td></tr>
                <tr><th>Ngày hiệu lực</th><td>${data.ngayhieuluc}</td></tr>
              </tbody>
            </table>`,
+
     source: `<p><b>Văn bản gốc:</b></p>
              <a href="${data.pdf_url}" target="_blank">📄 Xem PDF</a>`,
+
     download: `<p><b>Tải xuống:</b></p>
                <a href="${data.pdf_url}" download>📥 Tải file PDF</a>`
   };
+
   tabContent.innerHTML = tabData[tab];
   docTitle.innerText = data.title;
 }
 
-// Tab click
+// Tab switch
 tabs.forEach(tab=>{
   tab.addEventListener("click", ()=>{
     document.querySelector(".tab-btn.active").classList.remove("active");
@@ -115,39 +147,51 @@ tabs.forEach(tab=>{
   });
 });
 
-// Load dữ liệu theo slug
-const ref = window.location.origin; // sẽ là http://127.0.0.1:5500
-if(slug){
-  fetch(`${webAppUrl}?slug=${encodeURIComponent(slug)}&ref=${encodeURIComponent(ref)}`)
+/* ============================================================
+    TẢI DỮ LIỆU — KHÔNG DÙNG SLUG TRONG SHEET
+    → TỰ TẠO SLUG VÀ SO SÁNH
+============================================================ */
+const ref = window.location.origin;
+
+if(slugFromURL){
+  fetch(`${webAppUrl}?ref=${encodeURIComponent(ref)}`)
   .then(res => res.json())
-  .then(data => {
-    if(data.length>0){
-      currentData = data[0];
+  .then(allData => {
+
+    // Tìm bản ghi có slug khớp
+    const match = allData.find(row => toSlug(row.title) === slugFromURL);
+
+    if(match){
+      currentData = match;
       showTab(currentData);
     } else {
-      tabContent.innerHTML = "<p>Không tìm thấy dữ liệu.</p>";
       docTitle.innerText = "Không tìm thấy văn bản";
+      tabContent.innerHTML = "<p>Không tìm thấy dữ liệu.</p>";
     }
+
   })
   .catch(err=>{
     console.error(err);
+    docTitle.innerText = "Lỗi tải dữ liệu";
     tabContent.innerHTML = "<p>Không thể tải dữ liệu.</p>";
-    docTitle.innerText = "Lỗi";
   });
-} else {
-  tabContent.innerHTML = "<p>Không có slug.</p>";
+}
+else {
   docTitle.innerText = "Không xác định văn bản";
+  tabContent.innerHTML = "<p>Không có slug.</p>";
 }
 
-// Load header/footer
-function loadHTML(id,url){
+/* ============================================================
+    LOAD HEADER + FOOTER
+============================================================ */
+function loadHTML(id, url){
   fetch(url)
-    .then(res=>res.ok?res.text():Promise.reject("Network error"))
-    .then(html=>document.getElementById(id).innerHTML = html)
-    .catch(err=>console.error(err));
+    .then(res => res.ok ? res.text() : "")
+    .then(html => document.getElementById(id).innerHTML = html);
 }
-loadHTML('header','header.html');
-loadHTML('footer','footer.html');
+loadHTML("header", "header.html");
+loadHTML("footer", "footer.html");
 </script>
+
 </body>
 </html>
