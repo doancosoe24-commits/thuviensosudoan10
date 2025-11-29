@@ -1,159 +1,135 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-    <meta charset="UTF-8">
-    <link rel="shortcut icon" href="./img/logo1.jpg" type="image/x-icon">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Danh sách</title>
+  <meta charset="UTF-8">
+  <link rel="shortcut icon" href="./img/logo1.jpg" type="image/x-icon">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Danh sách</title>
+  <style>
+    html, body { margin:0; height:100%; font-family: Arial,sans-serif; background:#f7f9fb; color:#333; }
+    body { display:flex; flex-direction:column; width:70%; margin:0 auto; }
+    main { flex:1; padding:20px 0; }
+    .item_list { display:flex; align-items:center; margin-bottom:18px; }
+    .arrow { width:120px;height:45px;background:#ccae6e; clip-path: polygon(0% 0%,78% 0%,100% 50%,78% 100%,0% 100%,18% 50%); display:flex; align-items:center; justify-content:center; font-weight:700; color:#8c6d2a; margin-right:12px; }
+    .item { background:#004aad; flex:1; display:flex; flex-direction:column; padding:10px 5px; color:#fff; border-radius:5px; box-shadow:0 3px 6px rgba(0,0,0,0.15); cursor:pointer; }
+    .item p { margin:0 0 6px 0; font-weight:700; font-size:16px; }
+    .btn-new { background:#ff3131; color:#ffde59; font-weight:700; border:none; padding:8px 16px; border-radius:10px; align-self:flex-end; cursor:pointer; font-size:12px; transition:0.2s; }
+    .back-link { color:#ccae6e; padding:10px; font-weight:600; text-decoration:underline; cursor:pointer; display:inline-block; }
+    @media(max-width:768px){ body{width:95%;} .arrow{width:50px;height:35px;font-size:11px;} .item p{font-size:12px;} .btn-new{padding:6px 12px;font-size:11px;} }
+  </style>
 </head>
-
-<style>
-    html, body { height: 100%; margin: 0; }
-
-    body {
-        display: flex;
-        flex-direction: column;
-        width: 70%;
-        margin: 0 auto;
-        font-family: Arial, sans-serif;
-        background: #f7f9fb;
-        color: #333;
-    }
-
-    main { flex: 1; padding: 20px 0; }
-
-    .item_list { display: flex; align-items: center; margin-bottom: 18px; }
-
-    .arrow {
-        width: 120px; height: 45px;
-        background: #ccae6e;
-        clip-path: polygon(0% 0%, 78% 0%, 100% 50%, 78% 100%, 0% 100%, 18% 50%);
-        display: flex; align-items: center; justify-content: center;
-        font-weight: 700; color: #8c6d2a; font-size: 13px;
-        margin-right: 12px;
-    }
-
-    .item {
-        background: #004aad;
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        padding: 10px 5px;
-        color: #fff;
-        border-radius: 5px;
-        box-shadow: 0 3px 6px rgba(0,0,0,0.15);
-    }
-
-    .item p { margin: 0 0 6px 0; font-size: 16px; font-weight: 700; }
-
-    .btn-new {
-        background: #ff3131; color: #ffde59; font-weight: 700;
-        border: none; padding: 8px 16px; border-radius: 10px;
-        cursor: pointer; font-size: 12px; align-self: flex-end;
-        transition: 0.2s;
-    }
-
-    @media (max-width: 768px) {
-        body { width: 100%; }
-        .arrow { width: 50px; height: 35px; font-size: 11px; }
-        .item p { font-size: 12px; }
-        .btn-new { padding: 6px 12px; font-size: 11px; }
-    }
-</style>
 <body>
+
 <div id="header"></div>
 
 <main>
-
-    <span onclick="history.back()" style="color:#ccae6e;padding:10px;font-weight:600;text-decoration:underline;cursor:pointer;">
-        Quay lại
-    </span>
-
-    <h2 id="pageTitle" style="text-align:center;color:#ccae6e;text-transform: uppercase;"></h2>
-
-    <div id="list"></div>
-
+  <span class="back-link" onclick="history.back()">Quay lại</span>
+  <h2 id="pageTitle" style="text-align:center;color:#ccae6e;text-transform:uppercase;"></h2>
+  <div id="list"></div>
 </main>
 
 <div id="footer"></div>
-<script src="main.js"></script>
+
 <script>
-// 🔥 ĐÚNG LINK WEB APP (phải là /exec)
-const webAppUrl = "https://script.google.com/macros/s/AKfycbzgyV5SwuvbcEhZxuULBvErsTJvS_Oqd49QZN7EbzOj0SyaK10d6PGcWblc2EkrwIWc/exec";
+const webAppUrl = "https://script.google.com/macros/s/AKfycbxPWbDglcBRiwZfzhE2RwpWtQu6zb8EMBPDTXgd7Hdw8djblc5AM2qRjvr3FEa6mtzL/exec";
+const ref = window.location.origin;
+const slugURL = new URLSearchParams(window.location.search).get("slug")?.trim();
 
-// Lấy slug từ URL
-const params = new URLSearchParams(window.location.search);
-const slugURL = params.get("slug")?.toString().trim();   
-
-console.log("Slug URL =", slugURL);
-
-// Hàm tạo item HTML
-function createItemHTML(item){
-    return `
-        <div class="item_list">
-            <div class="arrow"></div>
-            <div class="item" onclick="goDetail(${item.slug})">
-                <p>${item.title}</p>
-                <button class="btn-new">Có hiệu lực</button>
-            </div>
-        </div>`;
+/* ============================
+   TẠO SLUG TỰ ĐỘNG TỪ TITLE
+   ============================ */
+function toSlug(text){
+  return text
+    .toLowerCase()
+    .normalize("NFD").replace(/[\u0300-\u036f]/g, "") // bỏ dấu
+    .replace(/[^a-z0-9\s-]/g, "") // bỏ ký tự đặc biệt
+    .trim()
+    .replace(/\s+/g, "-"); // khoảng trắng thành -
 }
 
-// Click item → mở list.html?id=xx
-function goDetail(slug){
-    window.location.href = "detail.html?slug=" + slug;
-}
+// Load header/footer và dữ liệu song song
+async function loadPage(){
+  try{
+    const headerPromise = fetch('header.html').then(r => r.ok?r.text():'');
+    const footerPromise = fetch('footer.html').then(r => r.ok?r.text():'');
+    const dataPromise = fetch(`${webAppUrl}?ref=${encodeURIComponent(ref)}`).then(r=>r.json());
 
- // sẽ là http://127.0.0.1:5500
-// Lấy dữ liệu từ Web App
-fetch(`${webAppUrl}?ref=${encodeURIComponent(ref)}`)
-  .then(res => res.json())
-  .then(data => {
-      console.log("Dữ liệu nhận được:", data);
+    const [headerHTML, footerHTML, data] = await Promise.all([headerPromise, footerPromise, dataPromise]);
+    document.getElementById('header').innerHTML = headerHTML;
+    document.getElementById('footer').innerHTML = footerHTML;
 
-      // lọc theo slug (so sánh dạng chuỗi)
-      const filtered = data.filter(i => String(i.slug).trim() === slugURL);
+    // Setup tìm kiếm nếu có
+    const searchBtn = document.getElementById("searchBtn");
+    const searchInput = document.getElementById("searchInput");
+    if(searchBtn && searchInput){
+      searchBtn.addEventListener("click", ()=>{
+        const key = searchInput.value.trim();
+        if(!key) return;
+        window.location.href = `timkiem.html?key=${encodeURIComponent(key)}`;
+      });
+    }
 
-// 🔥 cập nhật tiêu đề = tên category, không phải slug
-        if (filtered.length > 0) {
-            document.getElementById("pageTitle").innerText = filtered[0].category;
-        } else {
-            document.getElementById("pageTitle").innerText = "Không có dữ liệu";
-        }
-      // hiển thị danh sách
-      let html = "";
-      filtered.forEach(item => html += createItemHTML(item));
+    // Lọc dữ liệu theo slug category từ URL
+    const filtered = data.filter(i => String(i.slug).trim() === slugURL);
 
-      document.getElementById("list").innerHTML = html || "<p>Không có dữ liệu.</p>";
-  })
-  .catch(err => {
-      console.error("Lỗi:", err);
-      document.getElementById("list").innerHTML = "<p>Không thể tải dữ liệu.</p>";
-  });
+    // Cập nhật tiêu đề
+    const pageTitle = document.getElementById("pageTitle");
+    if(filtered.length>0) pageTitle.textContent = filtered[0].category;
+    else pageTitle.textContent = "Không có dữ liệu";
 
-function loadHTML(id, url) {
-  fetch(url)
-    .then(res => res.ok ? res.text() : Promise.reject('Network error'))
-    .then(html => {
-      document.getElementById(id).innerHTML = html;
+    // Render danh sách
+    const listEl = document.getElementById("list");
+    listEl.innerHTML = "";
+    if(filtered.length===0){
+      listEl.textContent = "Không có dữ liệu.";
+      return;
+    }
 
-      if(id === 'header'){
-        const searchBtn = document.getElementById("searchBtn");
-        const searchInput = document.getElementById("searchInput");
+    const frag = document.createDocumentFragment();
+    filtered.forEach(item=>{
+      const itemList = document.createElement("div");
+      itemList.className="item_list";
 
-        // Chỉ nút tìm kiếm → chuyển sang timkiem.html
-        searchBtn.addEventListener("click", ()=>{
-          const key = searchInput.value.trim();
-          if(!key) return;
-          window.location.href = `timkiem.html?key=${encodeURIComponent(key)}`;
-        });
+      const arrow = document.createElement("div");
+      arrow.className="arrow";
+
+      const itemDiv = document.createElement("div");
+      itemDiv.className="item";
+      itemDiv.dataset.title = item.title; // ✔ dùng để tạo slug
+
+      const p = document.createElement("p");
+      p.textContent = item.title;
+
+      const btn = document.createElement("button");
+      btn.className="btn-new";
+      btn.textContent="Có hiệu lực";
+
+      itemDiv.appendChild(p);
+      itemDiv.appendChild(btn);
+      itemList.appendChild(arrow);
+      itemList.appendChild(itemDiv);
+      frag.appendChild(itemList);
+    });
+    listEl.appendChild(frag);
+
+    // Khi click → tạo slug mới → chuyển sang detail.html
+    listEl.addEventListener('click', e=>{
+      const itemDiv = e.target.closest('.item');
+      if(itemDiv){
+        const newSlug = toSlug(itemDiv.dataset.title);
+        window.location.href = `detail.html?slug=${newSlug}`;
       }
-    })
-    .catch(err => console.error(`Error loading ${url}:`, err));
+    });
+
+  }catch(err){
+    console.error("Lỗi:",err);
+    document.getElementById("list").textContent="Không thể tải dữ liệu.";
+    document.getElementById("pageTitle").textContent="Lỗi tải dữ liệu";
+  }
 }
 
-loadHTML('header','header.html');
-loadHTML('footer','footer.html');
+// chạy khi load trang
+loadPage();
 </script>
 
 </body>
