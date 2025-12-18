@@ -95,7 +95,32 @@ iframe#contentFrame{width:100%;height:calc(100vh - 120px);border:0;border-radius
 
       <div class="controls" id="controls">
         <div id="adminAvatar" class="avatar" title="User"></div>
-        <a href="main.html"><button  id="collapseSidebar" title="Thu gọn menu">⇔</button></a>
+        <a href="main.html">
+  <button
+    id="collapseSidebar"
+    title="Thu gọn menu"
+    style="
+      width:44px;
+      height:44px;
+
+      border:none;
+      border-radius:12px;
+      cursor:pointer;
+
+      background:linear-gradient(135deg,#4f46e5,#06b6d4);
+      color:white;
+      font-size:18px;
+      font-weight:600;
+
+      box-shadow:0 6px 16px rgba(0,0,0,.18);
+      transition:all .25s ease;
+    "
+    onmouseover="this.style.transform='translateY(-2px) scale(1.05)';this.style.boxShadow='0 10px 22px rgba(0,0,0,.25)'"
+    onmouseout="this.style.transform='none';this.style.boxShadow='0 6px 16px rgba(0,0,0,.18)'"
+  >
+    ⇔
+  </button>
+</a>
       </div>
     </header>
 
