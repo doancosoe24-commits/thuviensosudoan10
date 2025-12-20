@@ -109,7 +109,14 @@ tbody tr:hover{background:rgba(11,108,255,0.03)}
     <h3 id="ftitle">Thêm tài liệu</h3>
 
     <input id="fid" type="hidden" />
-    <div class="row"><input id="ftitle_inp" placeholder="Tiêu đề" /></div>
+
+    <!-- Thay đổi: sử dụng datalist để gợi ý tiêu đề từ dữ liệu có sẵn, nhưng vẫn cho phép gõ tiêu đề mới -->
+    <div class="row">
+      <label class="small">Tiêu đề (chọn từ danh sách hoặc gõ mới)</label>
+      <input id="ftitle_inp" list="titles_datalist" placeholder="Ví dụ: Hướng dẫn nghiệp vụ, Tiêu chuẩn..." autocomplete="off" />
+      <datalist id="titles_datalist"></datalist>
+    </div>
+
     <div class="row"><input id="fname_inp" placeholder="Tên file (name)" /></div>
     <div class="row"><input id="fslug_inp" placeholder="Slug (ví dụ TaiLieuNganh)" /></div>
     <div class="row"><input id="furl_inp" placeholder="URL (link hoặc đường dẫn nội bộ)" /></div>
@@ -176,6 +183,7 @@ const btnAdd = document.getElementById('btnAdd');
 const btnReload = document.getElementById('btnReload');
 const fid = document.getElementById('fid');
 const ftitle_inp = document.getElementById('ftitle_inp');
+const titles_datalist = document.getElementById('titles_datalist');
 const fname_inp = document.getElementById('fname_inp');
 const fslug_inp = document.getElementById('fslug_inp');
 const furl_inp = document.getElementById('furl_inp');
@@ -186,10 +194,11 @@ const cancelBtn = document.getElementById('cancelBtn');
 const qInput = document.getElementById('q');
 
 let allUsers = []; // cache users for multiselect
+let allTitles = []; // cache titles for datalist
 
 /* ========== helpers ========== */
 function showToast(msg){ toast.textContent = msg; toast.classList.add('show'); toast.style.display='block'; setTimeout(()=>{ toast.classList.remove('show'); toast.style.display='none'; }, 2400); }
-function escapeHtml(s){ return String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function escapeHtml(s){ return String(s||'').replace(/[&<>\"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 function parseTokenPayload(t){
   try{
     if(!t || t.indexOf('.')<0) return null;
@@ -215,10 +224,14 @@ function resolveQuyenText(q){
   return escapeHtml(names.join(', '));
 }
 
+/* populate datalist from allTitles */
+function populateTitleDatalist(){
+  titles_datalist.innerHTML = allTitles.map(t => `<option value="${escapeHtml(t)}"></option>`).join('');
+}
+
 /* ========== load users for multiselect (admin/editor both may need) ========== */
 async function loadUsers(){
   try{
-    // users-list requires manager token (admin or editor). For editors who can't call users-list, fallback to GET apiGetAllData
     let users = [];
     const roleL = String(currentRole).toLowerCase();
     if(roleL === 'admin'){
@@ -227,7 +240,6 @@ async function loadUsers(){
       const json = await res.json();
       if(json && json.status === 'success') users = json.data || [];
     } else {
-      // editor: use GET public data
       const res = await fetch(API, { method:'GET', cache:'no-store' });
       const json = await res.json();
       if(json && json.status === 'success' && json.data && json.data.Users) users = json.data.Users;
@@ -242,7 +254,6 @@ async function loadUsers(){
 }
 function populateUserOptions(){
   fquyen_select.innerHTML = '';
-  // sort or move current user first? keep original order
   allUsers.forEach(u=>{
     const opt = document.createElement('option');
     opt.value = u.id || '';
@@ -255,7 +266,6 @@ function populateUserOptions(){
 async function loadDocs(){
   tb.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:18px">Đang tải...</td></tr>';
   try{
-    // call tailieu-list with token to respect permissions
     const body = new URLSearchParams({ route:'tailieu-list', token });
     const res = await fetch(API, { method:'POST', body });
     const json = await res.json();
@@ -265,6 +275,11 @@ async function loadDocs(){
       return;
     }
     const items = json.data || [];
+
+    // build title suggestions (unique, non-empty)
+    allTitles = Array.from(new Set(items.map(it => (it.title||'').trim()).filter(Boolean)));
+    populateTitleDatalist();
+
     if(items.length === 0){
       tb.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:18px">Không có dữ liệu</td></tr>';
       return;
@@ -273,7 +288,6 @@ async function loadDocs(){
     tb.innerHTML = items.map(it=>{
       const qText = resolveQuyenText(it.quyen || '');
       const urlCell = it.url ? `<a href="${escapeHtml(it.url)}" target="_blank" rel="noopener">Link</a>` : '';
-      // safe JSON encoding into data-json attribute 
       const dataJson = escapeHtml(JSON.stringify(it));
       return `<tr data-id="${escapeHtml(it.id||'')}">
         <td style="max-width:120px;word-break:break-word">${escapeHtml(it.id||'')}</td>
@@ -350,9 +364,7 @@ function openEditForm(item = {}){
   popup.setAttribute('aria-hidden','false');
 }
 function openPermForm(item = {}){
-  // same popup but we can focus permission area (popup already prefilled)
   openEditForm(item);
-  // focus multiselect for convenience
   fquyen_select.focus();
 }
 
@@ -389,6 +401,7 @@ saveBtn.onclick = async ()=>{
     if(json && (json.status==='success' || json.http_status===201 || json.id)){
       showToast(json.message || 'Lưu thành công');
       popup.style.display = 'none';
+      // update datalist choices immediately by reloading docs
       await loadDocs();
     } else {
       showToast(json && json.message ? json.message : 'Lỗi lưu');
