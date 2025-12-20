@@ -241,7 +241,7 @@
                         if(isManager){
                             window.location.href = "quanly.html";
                         } else {
-                            window.location.href = "main.html";
+                            window.location.href = "index.html";
                         }
                     }, 600);
                     return;
@@ -250,7 +250,7 @@
                     // nếu check-manager lỗi => redirect về main (an toàn)
                     console.warn("check-manager lỗi:", err);
                     showToast("Đăng nhập thành công (không kiểm tra quyền).", "success");
-                    setTimeout(()=> window.location.href = "main.html", 600);
+                    setTimeout(()=> window.location.href = "index.html", 600);
                     return;
                 }
 
@@ -325,7 +325,7 @@
                         if(data && data.status === "success"){
                             const isManager = !!data.isManager;
                             if(isManager) window.location.href = "quanly.html";
-                            else window.location.href = "main.html";
+                            else window.location.href = "index.html";
                         }
                     }catch(e){}
                 }).catch(()=>{});
