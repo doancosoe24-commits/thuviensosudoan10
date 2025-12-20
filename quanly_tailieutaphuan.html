@@ -94,46 +94,19 @@ tbody tr:hover{background:rgba(11,108,255,.04)}
   box-shadow:var(--shadow)
 }
 .form h3{margin:0 0 12px;color:var(--accent)}
-.form input,.form textarea{
-  width:100%;
-  padding:10px;
-  border-radius:8px;
-  border:1px solid #e6e9ef;
-  margin-bottom:8px
-}
+.form input,.form textarea{width:100%;padding:10px;border-radius:8px;border:1px solid #e6e9ef;margin-bottom:8px}
 .form textarea{min-height:90px;resize:vertical}
 
-.toast{
-  position:fixed;
-  left:50%;
-  top:20px;
-  transform:translateX(-50%);
-  background:#111;
-  color:#fff;
-  padding:10px 16px;
-  border-radius:10px;
-  display:none;
-  z-index:10000
-}
+.toast{position:fixed;left:50%;top:20px;transform:translateX(-50%);background:#111;color:#fff;padding:10px 16px;border-radius:10px;display:none;z-index:10000}
 .toast.show{display:block}
 
 /* responsive -> card table */
 @media (max-width:900px){
   table{min-width:0}
   thead{display:none}
-  tbody tr{
-    display:block;
-    margin-bottom:12px;
-    background:#fff;
-    border-radius:10px;
-    box-shadow:var(--shadow)
-  }
+  tbody tr{display:block;margin-bottom:12px;background:#fff;border-radius:10px;box-shadow:var(--shadow)}
   tbody td{display:block;border-bottom:none}
-  tbody td:before{
-    display:block;
-    font-weight:700;
-    color:var(--muted)
-  }
+  tbody td:before{display:block;font-weight:700;color:var(--muted)}
   tbody td:nth-child(1):before{content:"ID"}
   tbody td:nth-child(2):before{content:"Tiêu đề"}
   tbody td:nth-child(3):before{content:"Tên file"}
@@ -195,7 +168,12 @@ tbody tr:hover{background:rgba(11,108,255,.04)}
   <div class="form">
     <h3 id="ptitle">Thêm tài liệu</h3>
     <input type="hidden" id="fid">
-    <input id="ftitle" placeholder="Tiêu đề">
+
+    <!-- datalist cho tiêu đề: gợi ý từ dữ liệu có sẵn nhưng vẫn cho nhập mới -->
+    <label class="small">Tiêu đề (chọn từ danh sách hoặc gõ mới)</label>
+    <input id="ftitle" list="titles_datalist" placeholder="Ví dụ: Buổi tập huấn an toàn lao động">
+    <datalist id="titles_datalist"></datalist>
+
     <input id="fname" placeholder="Tên file">
     <input id="furl" placeholder="URL">
     <textarea id="fghi" placeholder="Ghi chú"></textarea>
@@ -214,7 +192,6 @@ const API="https://script.google.com/macros/s/AKfycbxzWMJ5FSuka8J50wPcNI6nIxt_Rn
 /* ================= AUTH ================= */
 const raw = localStorage.getItem("loggedInUser");
 if(!raw) location.href="login.html";
-
 let session;
 try{ session = JSON.parse(raw); }catch(e){ location.href="login.html"; }
 const token = session.token;
@@ -223,6 +200,7 @@ if(!token) location.href="login.html";
 /* ================= STATE ================= */
 let role = "viewer";
 let items = [];
+let allTitles = [];
 
 /* ================= ELEMENTS ================= */
 const tb = document.getElementById("tb");
@@ -232,6 +210,7 @@ const meta = document.getElementById("meta");
 
 const fid = document.getElementById("fid");
 const ftitle = document.getElementById("ftitle");
+const titles_datalist = document.getElementById("titles_datalist");
 const fname = document.getElementById("fname");
 const furl = document.getElementById("furl");
 const fghi = document.getElementById("fghi");
@@ -243,27 +222,29 @@ const reloadBtn = document.getElementById("reloadBtn");
 const q = document.getElementById("q");
 
 /* ================= HELPERS ================= */
-const esc=s=>s==null?"":String(s).replace(/[&<>"]/g,m=>(
-  {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[m]
-));
-const showToast=m=>{
-  toast.textContent=m;
-  toast.classList.add("show");
-  setTimeout(()=>toast.classList.remove("show"),2200);
-};
+const esc=s=>s==null?"":String(s).replace(/[&<>\"]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[m]||m));
+const showToast=m=>{ toast.textContent=m; toast.classList.add("show"); setTimeout(()=>toast.classList.remove("show"),2200); };
 function popupOpen(){ popup.style.display="flex"; }
 function popupClose(){ popup.style.display="none"; }
 
+/* populate datalist */
+function populateTitleDatalist(){
+  // unique sorted
+  allTitles = Array.from(new Set(allTitles.map(t=>String(t).trim()).filter(Boolean)));
+  titles_datalist.innerHTML = allTitles.map(t=>`<option value="${esc(t)}"></option>`).join('');
+}
+
 /* ================= ROLE ================= */
 async function detectRole(){
-  let r = await fetch(API,{method:"POST",body:new URLSearchParams({route:"check-admin",token})});
-  let j = await r.json();
-  if(j.isAdmin){ role="admin"; return; }
+  try{
+    let r = await fetch(API,{method:"POST",body:new URLSearchParams({route:"check-admin",token})});
+    let j = await r.json();
+    if(j && j.isAdmin){ role="admin"; return; }
 
-  r = await fetch(API,{method:"POST",body:new URLSearchParams({route:"check-manager",token})});
-  j = await r.json();
-  if(j.isManager){ role="editor"; return; }
-
+    r = await fetch(API,{method:"POST",body:new URLSearchParams({route:"check-manager",token})});
+    j = await r.json();
+    if(j && j.isManager){ role="editor"; return; }
+  }catch(e){ console.error('detectRole',e); }
   alert("Không có quyền truy cập");
   location.href="login.html";
 }
@@ -271,10 +252,21 @@ async function detectRole(){
 /* ================= LOAD ================= */
 async function load(){
   tb.innerHTML='<tr><td colspan="6" style="text-align:center">Đang tải…</td></tr>';
-  const r = await fetch(API,{method:"POST",body:new URLSearchParams({route:"taphuan-list",token})});
-  const j = await r.json();
-  items = j.data || [];
-  render();
+  try{
+    const r = await fetch(API,{method:"POST",body:new URLSearchParams({route:"taphuan-list",token})});
+    const j = await r.json();
+    items = j.data || [];
+
+    // build title suggestions
+    allTitles = items.map(it => it.title || "");
+    populateTitleDatalist();
+
+    render();
+  }catch(e){
+    console.error('load err',e);
+    tb.innerHTML='<tr><td colspan="6" style="text-align:center">Lỗi tải dữ liệu</td></tr>';
+    showToast('Lỗi tải dữ liệu');
+  }
 }
 
 function render(){
@@ -292,8 +284,8 @@ function render(){
       <td>
         ${role==="admin"
           ? `<div class="actions">
-              <button class="btn btn-edit" onclick="editItem('${it.id}')">Sửa</button>
-              <button class="btn btn-del" onclick="deleteItem('${it.id}')">Xóa</button>
+              <button class="btn btn-edit" onclick="editItem('${esc(it.id)}')">Sửa</button>
+              <button class="btn btn-del" onclick="deleteItem('${esc(it.id)}')">Xóa</button>
             </div>`
           : "—"}
       </td>
@@ -309,7 +301,7 @@ addBtn.onclick=()=>{
   popupOpen();
 };
 
-function editItem(id){
+window.editItem = function(id){
   if(role!=="admin") return;
   const it = items.find(x=>String(x.id)===String(id));
   if(!it) return;
@@ -325,36 +317,43 @@ function editItem(id){
 saveBtn.onclick=async()=>{
   if(role!=="admin") return;
   const route = fid.value ? "taphuan-update" : "taphuan-add";
-  await fetch(API,{
-    method:"POST",
-    body:new URLSearchParams({
+  try{
+    const res = await fetch(API,{method:"POST",body:new URLSearchParams({
       route,token,
       id:fid.value,
       title:ftitle.value,
       name:fname.value,
       url:furl.value,
       ghi_chu:fghi.value
-    })
-  });
-  showToast("Đã lưu");
-  popupClose();
-  load();
+    })});
+    const j = await res.json();
+    showToast((j && j.message) ? j.message : 'Đã lưu');
+    popupClose();
+    await load(); // reload so datalist and table update immediately
+  }catch(e){
+    console.error('save err',e);
+    showToast('Lỗi khi lưu');
+  }
 };
 
-async function deleteItem(id){
+window.deleteItem=async function(id){
   if(role!=="admin") return;
   if(!confirm("Xóa tài liệu này?")) return;
-  await fetch(API,{method:"POST",body:new URLSearchParams({route:"taphuan-delete",token,id})});
-  showToast("Đã xóa");
-  load();
+  try{
+    const res = await fetch(API,{method:"POST",body:new URLSearchParams({route:"taphuan-delete",token,id})});
+    const j = await res.json();
+    showToast((j && j.message) ? j.message : 'Đã xóa');
+    await load();
+  }catch(e){
+    console.error('delete err',e);
+    showToast('Lỗi khi xóa');
+  }
 }
 
 /* ================= SEARCH ================= */
 q.oninput=()=>{
   const v=q.value.toLowerCase();
-  [...tb.rows].forEach(r=>{
-    r.style.display=r.innerText.toLowerCase().includes(v)?"":"none";
-  });
+  [...tb.rows].forEach(r=>{ r.style.display = r.innerText.toLowerCase().includes(v) ? "" : "none"; });
 };
 reloadBtn.onclick=load;
 
@@ -362,8 +361,8 @@ reloadBtn.onclick=load;
 (async()=>{
   await detectRole();
   meta.innerHTML=`<div class="small">Quyền: <strong>${role}</strong></div>`;
-  if(role!=="admin"){ addBtn.style.display="none"; }
-  load();
+  if(role!="admin"){ addBtn.style.display="none"; }
+  await load();
 })();
 </script>
 
