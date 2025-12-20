@@ -222,7 +222,7 @@ btnVerify.addEventListener('click', async ()=>{
     if(j && (j.success === true || j.status === 'success')){
       showToast(j.message || 'Đăng ký thành công', 'success', 1600);
       clearAll();
-      setTimeout(()=> location.href = 'index.html', 1200);
+      setTimeout(()=> location.href = 'login.html', 1200);
     } else {
       showToast(j.message || 'Đăng ký thất bại', 'error');
     }
@@ -275,4 +275,5 @@ btnCancel.addEventListener('click', ()=>{
 </script>
 </body>
 </html>
+
 
