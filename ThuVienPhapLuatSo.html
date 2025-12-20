@@ -325,10 +325,13 @@ function renderList(data){
     list.appendChild(d);
   });
 
-  list.onclick=e=>{
-    const it=e.target.closest(".item");
-    if(it) location.href=`detail.html?slug=${it.dataset.slug}`;
-  };
+list.onclick = e => {
+  const it = e.target.closest(".item");
+  if (!it) return;
+
+  location.href = `detail.html?slug=${it.dataset.slug}`;
+};
+
 
   for(let p=1;p<=total;p++){
     const b=document.createElement("button");
