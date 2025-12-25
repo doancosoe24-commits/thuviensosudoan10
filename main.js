@@ -220,9 +220,7 @@ function requireLogin() {
 
   if (publicPages.includes(page)) return;
 
-  if (!localStorage.getItem("loggedInUser")) {
-    location.href = "index.html";
-  }
+
 }
 
 /****************************************************
