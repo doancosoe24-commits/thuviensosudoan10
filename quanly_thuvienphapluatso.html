@@ -160,7 +160,7 @@ tbody tr:hover{background:rgba(11,108,255,.04)}
 
 <script>
 /* ================= CONFIG ================= */
-const API = "https://script.google.com/macros/s/AKfycbxaIMhLejw8mldxfovv8TjXfGxmkHm_T0aJ-lUhTBlh-ssgdpQyY0m22Jsy_y0TA02H/exec";
+const API = "https://script.google.com/macros/s/AKfycbw-rKmfvkgeGcBscroeeLS4_1sZZTrdfRGk0DyRLNRlS03z1W1RXswlNDF_1VM0M74k/exec";
 
 /* ================= UTIL ================= */
 const tb=document.getElementById('tb');
@@ -311,7 +311,7 @@ document.getElementById('saveBtn').onclick = async () => {
   if(!s || !s.token){ showToast('Token mất, xin đăng nhập lại'); localStorage.removeItem('loggedInUser'); setTimeout(()=>location.href='login.html',800); return; }
 
   const id = document.getElementById('fid').value;
-  const route = id ? 'law-update' : 'law-add';
+  const route = id ? 'law-update-edit' : 'law-add-cr';
   const body = new URLSearchParams();
   body.append('token', s.token);
   if(id) body.append('id', id);
@@ -337,7 +337,7 @@ async function deleteLaw(id){
   const s = getSession();
   if(!s || !s.token){ showToast('Token mất'); return; }
   try{
-    const r = await fetch(`${API}?route=law-delete`, { method:'POST', body: new URLSearchParams({ token: s.token, id }) });
+    const r = await fetch(`${API}?route=law-delete-remove`, { method:'POST', body: new URLSearchParams({ token: s.token, id }) });
     const j = await r.json();
     showToast(j?.message || 'Đã xóa');
     await loadData();
