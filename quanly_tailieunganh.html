@@ -133,6 +133,14 @@ tbody tr:hover{background:rgba(11,108,255,0.03)}
     <div class="row">
       <label class="small">Chọn user (nhấn Ctrl/Cmd để chọn nhiều)</label>
       <select id="fquyen_select" multiple class="multiselect-list"></select>
+
+      <!-- NEW: nút Bỏ chọn để dễ thao tác -->
+      <div style="margin-top:8px; display:flex; gap:8px; align-items:center;">
+        <button id="btnClearSelect" type="button" class="btn btn-ghost" style="padding:6px 10px;font-size:13px">Bỏ chọn</button>
+        <button id="btnSelectAllVisible" type="button" class="btn btn-ghost" style="padding:6px 10px;font-size:13px">Chọn tất cả</button>
+        <span class="muted" style="margin-left:6px">Dùng để nhanh thao tác lựa chọn user</span>
+      </div>
+
       <div class="muted" style="margin-top:6px">Chọn user mà tài khoản này được phép xem tài liệu. Nếu bật "all" thì tất cả đều xem được.</div>
     </div>
 
@@ -192,6 +200,8 @@ const fquyen_select = document.getElementById('fquyen_select');
 const saveBtn = document.getElementById('saveBtn');
 const cancelBtn = document.getElementById('cancelBtn');
 const qInput = document.getElementById('q');
+const btnClearSelect = document.getElementById('btnClearSelect'); // NEW
+const btnSelectAllVisible = document.getElementById('btnSelectAllVisible'); // NEW
 
 let allUsers = []; // cache users for multiselect
 let allTitles = []; // cache titles for datalist
@@ -443,6 +453,23 @@ document.addEventListener('keydown', (e)=>{
     fquyen_all.checked = false;
     showToast('Đã bỏ chọn tất cả user');
   }
+});
+
+/* ========== NEW: Clear / Select-all buttons handlers ========== */
+btnClearSelect && (btnClearSelect.onclick = (e) => {
+  e.preventDefault();
+  Array.from(fquyen_select.options).forEach(o=> o.selected = false);
+  fquyen_all.checked = false;
+  fquyen_select.focus();
+  showToast('Đã bỏ chọn tất cả user');
+});
+
+btnSelectAllVisible && (btnSelectAllVisible.onclick = (e) => {
+  e.preventDefault();
+  // chọn tất cả option hiện có trong select (không ảnh hưởng đến checkbox "all")
+  Array.from(fquyen_select.options).forEach(o=> o.selected = true);
+  fquyen_select.focus();
+  showToast('Đã chọn tất cả user hiển thị');
 });
 
 /* ========== init ========== */
