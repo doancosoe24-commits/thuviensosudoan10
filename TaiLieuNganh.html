@@ -2,7 +2,7 @@
 <html lang="vi">
 <head>
   <meta charset="UTF-8">
-    <link rel="shortcut icon" href="./img/logo.png" type="image/x-icon">
+  <link rel="shortcut icon" href="./img/logo.png" type="image/x-icon">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Thư Viện Pháp Luật Số - Tài Liệu Ngành</title>
 
@@ -102,13 +102,14 @@
       transition:.3s;
     }
 
-    .item:hover::after{ opacity:1; }
+    .item:hover::after{ opacity:1; transform:scale(1.02); }
 
     .item p{
       margin:0;
       font-size:17px;
       font-weight:700;
       line-height:1.4;
+      word-break:break-word;
     }
 
     /* ---------- LOADING ---------- */
@@ -172,8 +173,7 @@
 </main>
 
 <div id="footer"></div>
-
-<script src="main.js"></script>
+  <script src="main.js"></script>
 <script>
 /* =========================
    CẤU HÌNH: thay webAppUrl nếu cần
@@ -196,8 +196,10 @@ function escapeHtml(str){
 }
 function toSlug(text){
   if(!text) return "";
+  // chuyển dấu Tiếng Việt -> không dấu
   text = text.replace(/Đ/g,"D").replace(/đ/g,"d");
   let str = text.normalize("NFD").replace(/[\u0300-\u036f]/g,"");
+  // tạo slug kiểu PascalCase (giữ tương thích với phần còn lại)
   return str.split(/\s+/).map(w =>
     w.replace(/[^a-zA-Z0-9]/g,"").replace(/^./, c=>c.toUpperCase())
   ).join("");
@@ -229,6 +231,7 @@ function updatePageTitleFromSlug(slug){
   if(cat){
     document.getElementById("pageTitle").innerText = cat.title;
   } else {
+    // fallback: hiển thị slug (đã format lại)
     document.getElementById("pageTitle").innerText = slug;
   }
 }
@@ -241,12 +244,12 @@ function showError(msg){
 }
 
 /* ---------- CORE: loadPage (HIỂN THỊ TẤT CẢ tài liệu)
-   Yêu cầu: bỏ qua kiểm tra "all" hay quyen — mọi record backend trả lên đều hiển thị.
-   NOTE: cờ "all" chỉ còn dùng ở phần quản lý (admin panel), không ảnh hưởng đoạn này.
+   Mục tiêu: BỎ qua kiểm tra quyền ở phía client — hiển thị mọi record backend public trả về.
+   Lưu ý: Nếu backend có endpoint tailieu-list trả filter theo role, ta KHÔNG gọi endpoint đó cho list.
 ----------------------------------------------- */
 async function loadPage(){
   try{
-    // cố gắng lấy token (nếu cần truyền cho detail page)
+    // cố gắng lấy token (chỉ để truyền cho trang detail nếu cần)
     let token = null;
     try{
       const raw = localStorage.getItem("loggedInUser");
@@ -256,25 +259,8 @@ async function loadPage(){
       }
     }catch(e){ token = null; }
 
-    // 1) ưu tiên gọi tailieu-list nếu backend hỗ trợ và trả mảng
-    let docsRaw = null;
+    // LUÔN LẤY DỮ LIỆU TỪ WEBAPP PUBLIC (KHÔNG DÙNG token để filter)
     let allDataJson = null;
-
-    try{
-      if(token){
-        const resp = await fetch(webAppUrl + '?route=tailieu-list&token=' + encodeURIComponent(token));
-        const js = await resp.json();
-        if(js && js.status === 'success' && Array.isArray(js.data)){
-          docsRaw = js.data;
-        } else {
-          docsRaw = null;
-        }
-      }
-    }catch(e){
-      docsRaw = null;
-    }
-
-    // 2) nếu chưa có dữ liệu, lấy toàn bộ API và trích TaiLieuNganh
     try{
       const resAll = await fetch(webAppUrl);
       allDataJson = await resAll.json();
@@ -282,12 +268,11 @@ async function loadPage(){
       allDataJson = null;
     }
 
-    if(!docsRaw){
-      const docsFromAll = (allDataJson && allDataJson.data && (allDataJson.data.TaiLieuNganh || allDataJson.data.TaiLieu || allDataJson.data.items)) ? (allDataJson.data.TaiLieuNganh || allDataJson.data.TaiLieu || allDataJson.data.items) : [];
-      docsRaw = Array.isArray(docsFromAll) ? docsFromAll : [];
-    }
+    // try nhiều key khác nhau để tương thích: TaiLieuNganh, TaiLieu, items
+    const docsFromAll = (allDataJson && allDataJson.data && (allDataJson.data.TaiLieuNganh || allDataJson.data.TaiLieu || allDataJson.data.items)) ? (allDataJson.data.TaiLieuNganh || allDataJson.data.TaiLieu || allDataJson.data.items) : [];
+    const docsRaw = Array.isArray(docsFromAll) ? docsFromAll : [];
 
-    // categories để mapping tiêu đề
+    // categories để mapping tiêu đề nếu có
     ALL_CATEGORIES = (allDataJson && allDataJson.data && allDataJson.data.Category) ? allDataJson.data.Category : [];
 
     // === CRITICAL CHANGE: hiển thị mọi document backend trả lên (không kiểm tra quyen) ===
@@ -334,6 +319,7 @@ function renderList(data){
   uniqueMap.forEach(i=>{
     const div = document.createElement("div");
     div.className = "item_list";
+    // lưu nguyên title vào data-title (escape để an toàn)
     div.innerHTML = `
       <div class="item" data-title="${escapeHtml(i.title)}">
         <p>${escapeHtml(i.title)}</p>
@@ -352,6 +338,7 @@ function renderList(data){
 
     const slug = toSlug(item.dataset.title || "");
 
+    // lấy token từ localStorage (nếu có) để truyền sang detail page
     let token = null;
     try{
       const raw = localStorage.getItem("loggedInUser");
@@ -366,7 +353,6 @@ function renderList(data){
       + (token ? `&token=${encodeURIComponent(token)}` : "");
   };
 }
-
 
 /* ---------- start ---------- */
 loadPage();
