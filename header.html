@@ -10,7 +10,12 @@
 <style>
     header{ width: 100%; padding:0; }
     .logo{ display: flex; justify-content: space-between; }
-    .logo img{ width: 100px; height: 100px; }
+        .logo img{
+  width: 100px;      /* cố định 1 chiều */
+  height: auto;      /* chiều còn lại tự co giãn */
+  max-height: 100px; /* không vượt quá */
+  object-fit: contain;
+}
 
     /* USER BOX */
     #userBox{
