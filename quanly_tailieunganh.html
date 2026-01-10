@@ -3,736 +3,510 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Admin - Tài liệu ngành (Quản lý quyền)</title>
-<link rel="shortcut icon" href="./img/logo.png" type="image/x-icon">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="shortcut icon" href="./img/logo.png" type="image/x-icon">
+<title>Admin - Tài liệu ngành (Quản lý quyền & Danh mục)</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
 <style>
 :root{
-  --bg:#eef6ff;
+  --bg:#f4f7fb;
   --card:#ffffff;
   --text:#0f172a;
   --accent:#0b6cff;
-  --accent-2:#06b6d4;
   --muted:#6b7280;
   --radius:12px;
-  --shadow-sm:0 8px 24px rgba(7,16,36,0.06);
-  --shadow-lg:0 22px 60px rgba(7,16,36,0.10);
+  --shadow:0 8px 24px rgba(15,23,42,0.06);
   --danger:#ef4444;
-  --success:#10b981;
-  font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial;
+  font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
 }
-
-/* base */
 *{box-sizing:border-box}
-body{margin:0;background:linear-gradient(180deg,#f8fbff,var(--bg));color:var(--text);padding:20px}
-a{color:var(--accent-2)}
+body{background:linear-gradient(180deg,#f7fbff 0%,var(--bg) 100%);color:var(--text);margin:0;padding:28px}
 .container{max-width:1200px;margin:0 auto}
-
-/* header */
-.header{
-  display:flex;align-items:center;justify-content:space-between;gap:12px;
-  padding:16px;border-radius:14px;background:linear-gradient(90deg,var(--accent),var(--accent-2));
-  color:#fff;box-shadow:var(--shadow-lg);margin-bottom:14px;
-}
-.brand{display:flex;gap:12px;align-items:center}
-.logo{width:56px;height:56px;border-radius:10px;background:rgba(255,255,255,0.12);display:grid;place-items:center;font-weight:800}
-.brand h1{margin:0;font-size:18px;letter-spacing:0.3px}
-.brand p{margin:0;font-size:13px;opacity:.95}
-/* user meta */
-.user-meta{
-  background:rgba(255,255,255,0.12);
-  padding:8px 12px;border-radius:999px;font-weight:600;display:flex;gap:8px;align-items:center;font-size:13px;
-  min-width:0; max-width:320px; overflow-x:hidden;
-}
-.user-name-box{ max-height:48px; overflow-y:auto; overflow-x:hidden; white-space:normal; word-break:break-word; }
-.user-name-box .name{font-weight:700}
-.user-name-box .role{font-size:12px;opacity:.9;color:rgba(255,255,255,0.9)}
-
-/* main card */
-.card{background:var(--card);border-radius:12px;padding:16px;box-shadow:var(--shadow-sm)}
-
-/* toolbar */
-.toolbar{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-bottom:12px}
-.search{display:flex;align-items:center;gap:8px;background:linear-gradient(180deg,#fbfdff,#f6f9ff);padding:8px;border-radius:12px;border:1px solid rgba(7,16,36,0.04);flex:1;min-width:180px}
-.search input{border:0;background:transparent;outline:none;padding:8px;font-size:14px;width:100%}
-.controls{display:flex;gap:8px}
-.btn{border:0;padding:9px 14px;border-radius:10px;font-weight:700;cursor:pointer;transition:transform .14s ease}
-.btn:active{transform:translateY(1px)}
-.btn.primary{background:linear-gradient(90deg,var(--accent),var(--accent-2));color:#fff;box-shadow:0 10px 28px rgba(11,108,255,0.12)}
-.btn.ghost{background:transparent;border:1px solid rgba(7,16,36,0.06)}
-.btn.warn{background:#f59e0b;color:#fff}
-.btn.danger{background:var(--danger);color:#fff}
-
-/* table */
+.card{background:var(--card);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow)}
+h1{text-align:start;color:var(--accent);margin:0 0 12px;font-size:24px}
+.toolbar{display:flex;gap:12px;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap}
+.search{flex:1;min-width:200px}
+.search input{width:100%;padding:12px;border-radius:10px;border:1px solid #e6e9ef;font-size:14px}
+.btn{padding:9px 14px;border-radius:10px;border:none;cursor:pointer;font-weight:600}
+.btn-add{background:var(--accent);color:#fff}
+.btn-ghost{background:transparent;border:1px solid #e6e9ef}
 .table-wrap{overflow:auto;border-radius:10px}
-
-/* Không ép bảng rộng, cố định layout để cột tên không kéo dài */
-table{
-  width:100%;
-  border-collapse:collapse;
-  min-width:0;
-  table-layout:fixed;
-  word-break:break-word;
-}
-thead th{
-  padding:12px 14px;font-size:12px;color:var(--muted);text-transform:uppercase;text-align:left;white-space:nowrap;
-}
-tbody td{
-  padding:12px 14px;border-bottom:1px solid rgba(7,16,36,0.04);font-size:14px;white-space:normal;word-break:break-word;
-}
-tbody tr:hover{background:linear-gradient(90deg, rgba(6,182,212,0.02), rgba(11,108,255,0.02))}
-
-/* category badge (hiển thị trực tiếp, không cần click) */
-.cat-badge{
-  display:inline-block;
-  padding:6px 10px;
-  border-radius:999px;
-  background:linear-gradient(90deg,#f1f7ff,#eef6ff);
-  color:var(--muted);
-  font-weight:600;
-  font-size:13px;
-  border:1px solid rgba(11,108,255,0.06);
-}
-
-/* Tên file: không wrap, ẩn/truncate (ellipsis), title chứa full name */
-.name-cell{
-  width:340px;
-  max-width:340px;
-  min-width:0;
-  vertical-align:top;
-  overflow:visible;
-}
-.name-cell .cell-inner{
-  white-space:nowrap;
-  overflow:hidden;
-  text-overflow:ellipsis;
-  display:block;
-  padding-right:6px;
-}
-
-/* action buttons: màu sắc rõ ràng */
-.action-btn{
-  display:inline-flex;align-items:center;gap:8px;padding:8px 10px;border-radius:8px;border:none;color:#fff;cursor:pointer;font-size:13px;
-  transition:transform .12s ease, box-shadow .12s ease, opacity .12s ease;
-}
-.action-btn:active{ transform:translateY(1px) }
-.action-btn.edit{ background: linear-gradient(90deg,#06b6d4,#0891b2); box-shadow: 0 6px 16px rgba(6,182,212,0.12); }
-.action-btn.perm{ background: linear-gradient(90deg,#0b6cff,#0a58d9); box-shadow: 0 6px 16px rgba(11,108,255,0.12); }
-.action-btn.del{ background: linear-gradient(90deg,#ef4444,#dc2626); box-shadow: 0 6px 16px rgba(239,68,68,0.12); }
-.action-btn.view{ background: linear-gradient(90deg,#9ca3ff,#7c83ff); box-shadow: 0 6px 16px rgba(124,131,255,0.08); }
-
-/* nút nhỏ khi hiển thị nhiều trên 1 ô */
-.action-btn.small{ padding:6px 8px; font-size:12px }
-
-/* badges */
-.badge{padding:6px 8px;border-radius:8px;font-size:12px;color:#fff;display:inline-block}
-.badge.all{background:var(--success)}
-
-/* popup form */
-.popup{display:none;position:fixed;inset:0;background:rgba(7,16,36,0.45);align-items:center;justify-content:center;z-index:1200;padding:18px}
-.form{background:var(--card);padding:18px;border-radius:12px;width:100%;max-width:720px;box-shadow:var(--shadow-lg);max-height:92vh;overflow:auto}
+table{width:100%;border-collapse:collapse;min-width:900px}
+thead th{text-align:left;padding:12px 14px;font-size:12px;color:var(--muted);text-transform:uppercase}
+tbody td{padding:12px 14px;border-bottom:1px solid rgba(0,0,0,0.04);font-size:14px;vertical-align:middle}
+tbody tr:hover{background:rgba(11,108,255,0.03)}
+.action-btn{display:inline-flex;align-items:center;gap:8px;padding:6px 10px;border-radius:8px;border:none;color:#fff;cursor:pointer;font-size:13px}
+.edit{background:#f59e0b}.del{background:var(--danger)}.perm{background:#06b6d4}.cat{background:#7c3aed}
+.popup{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);align-items:center;justify-content:center;z-index:999}
+.form{background:#fff;padding:20px;border-radius:12px;width:640px;box-shadow:var(--shadow);max-height:90vh;overflow:auto}
 .form h3{margin:0 0 12px;color:var(--accent)}
 .form .row{margin-bottom:10px}
 .form input, .form textarea, .form select{width:100%;padding:10px;border-radius:8px;border:1px solid #e6e9ef;font-size:14px}
-.form .muted{font-size:13px;color:var(--muted)}
-.form .multiselect-list{min-height:120px;max-height:220px;overflow:auto}
-
-/* additional small controls for clearing */
-.controls-helpers{display:flex;gap:8px;align-items:center;margin-top:6px}
-
-/* mobile cards */
-.cards{display:none}
-@media (max-width:820px){
-  table{min-width:0}
-  thead{display:none}
-  tbody tr{display:block;margin-bottom:12px;background:var(--card);border-radius:10px;box-shadow:var(--shadow-sm);padding:12px}
-  tbody td{display:block;padding:6px 0;border-bottom:none}
-  tbody td:before{display:inline-block;width:120px;font-weight:700;color:var(--muted);margin-right:6px}
-  tbody td:nth-child(1):before{content:"ID"}
-  tbody td:nth-child(2):before{content:"Danh mục"}
-  tbody td:nth-child(3):before{content:"Tên file"}
-  tbody td:nth-child(4):before{content:"URL"}
-  tbody td:nth-child(5):before{content:"Quyền xem"}
-  tbody td:nth-child(6):before{content:"Hành động"}
-
-  .cards{display:flex;flex-direction:column;gap:12px}
-  .card-item{background:linear-gradient(180deg,#fff,#fbfdff);padding:12px;border-radius:10px;box-shadow:var(--shadow-sm)}
-  .card-item .meta{color:var(--muted);font-size:13px;margin-top:8px;display:flex;gap:8px;flex-wrap:wrap}
-}
-
-/* toast & loader */
-.toast{position:fixed;left:50%;top:22px;transform:translateX(-50%);background:#071024;color:#fff;padding:10px 14px;border-radius:10px;display:none;z-index:1400;max-width:90%;word-break:break-word}
+.form .muted{font-size:13px;color:#6b7280}
+.toast{position:fixed;left:50%;top:20px;transform:translateX(-50%);background:#111;color:#fff;padding:10px 16px;border-radius:10px;display:none;z-index:10000}
 .toast.show{display:block}
-.loader{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(255,255,255,0.6);z-index:1500}
-.loader.show{display:flex}
-.spinner{width:56px;height:56px;border-radius:12px;background:linear-gradient(180deg,#fff,#f4f7fb);display:grid;place-items:center;box-shadow:var(--shadow-sm);font-weight:700;color:var(--accent-2)}
+.badge{padding:6px 8px;border-radius:8px;font-size:12px;color:#fff;display:inline-block}
+.badge.all{background:#10b981}
+.small{font-size:13px;color:#475569}
+.multiselect-list{height:140px}
+/* category preview modal */
+.cat-card{background:#fff;padding:18px;border-radius:10px;min-width:320px;box-shadow:var(--shadow)}
 
-/* small focus */
-input:focus, button:focus, select:focus { outline: 3px solid rgba(11,108,255,0.08); outline-offset:2px; border-radius:8px; }
-
-/* visually hidden for search accessibility */
-.sr-only{position:absolute;left:-9999px;top:auto;width:1px;height:1px;overflow:hidden}
+/* Responsive: convert table to cards on small screens */
+@media (max-width:820px){
+  table{min-width:0;}
+  thead{display:none;}
+  tbody td{display:block;padding:12px;border-bottom:1px solid rgba(0,0,0,0.04)}
+  tbody tr{margin-bottom:12px;background:#fff;border-radius:10px;box-shadow:var(--shadow);display:block;padding:0}
+  tbody tr td{border:none}
+  tbody tr td:before{font-weight:600;display:inline-block;width:120px;color:var(--muted)}
+  tbody tr td:nth-child(1):before{content:"ID"}
+  tbody tr td:nth-child(2):before{content:"Tên file"}
+  tbody tr td:nth-child(3):before{content:"Slug"}
+  tbody tr td:nth-child(4):before{content:"URL"}
+  tbody tr td:nth-child(5):before{content:"Quyền xem"}
+  tbody tr td:nth-child(6):before{content:"Hành động"}
+}
 </style>
 </head>
 <body>
-  <div class="container">
-    <header class="header" role="banner" aria-label="Header quản trị">
-      <div class="brand">
-        <div class="info"><h1>Tài Liệu Ngành</h1><p class="muted">Bảng quản lý</p></div>
+<div class="container">
+  <div class="card">
+    <h1>Admin — Tài liệu ngành</h1>
+
+    <div class="toolbar">
+      <div style="display:flex;gap:12px;flex:1;align-items:center">
+        <div class="search"><input id="q" placeholder="Tìm kiếm theo tên file / slug / quyền..." /></div>
       </div>
-      <div style="display:flex;gap:10px;align-items:center">
-        <div id="meta" class="user-meta">Đang tải...</div>
-        <button id="logoutBtn" class="btn ghost" title="Đăng xuất">Đăng xuất</button>
-      </div>
-    </header>
-
-    <main class="card" role="main">
-      <div class="toolbar">
-        <div class="search" role="search" aria-label="Tìm kiếm">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M21 21l-4.35-4.35" stroke="#667085" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M11 19a8 8 0 100-16 8 8 0 000 16z" stroke="#667085" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          <input id="q" placeholder="Tìm theo danh mục / tên file / url / quyền..." aria-label="Tìm văn bản">
-          <button id="clearSearch" class="btn ghost" title="Xóa">✕</button>
-        </div>
-
-        <div class="controls" role="toolbar">
-          <button id="btnReload" class="btn ghost" title="Làm mới">⟳</button>
-          <button id="btnAdd" class="btn primary" title="Thêm tài liệu">+ Thêm</button>
-        </div>
-      </div>
-
-      <div class="table-wrap" aria-live="polite">
-        <table role="table" aria-label="Bảng tài liệu">
-          <thead>
-            <tr>
-              <th style="width:30px">ID</th>
-              <th style="width:150px">Danh mục</th>
-              <th style="width:250px">Tên file</th>
-              <th style="width:100px">URL</th>
-              <th style="width:100px">Quyền xem</th>
-              <th style="width:220px"></th>
-            </tr>
-          </thead>
-          <tbody id="tb">
-            <tr><td colspan="6" style="text-align:center;padding:18px">Chưa tải dữ liệu...</td></tr>
-          </tbody>
-        </table>
-      </div>
-
-      <div class="cards" id="cards" hidden aria-live="polite"></div>
-    </main>
-  </div>
-
-  <!-- popup form -->
-  <div id="popup" class="popup" aria-hidden="true">
-    <div class="form" role="dialog" aria-modal="true" aria-labelledby="ftitle">
-      <h3 id="ftitle">Thêm tài liệu</h3>
-      <input id="fid" type="hidden" />
-
-      <div class="row">
-        <label class="muted">Danh mục (chọn từ danh sách)</label>
-        <select id="fcategory_select" aria-label="Chọn danh mục">
-          <option value="">-- Chọn danh mục --</option>
-        </select>
-      </div>
-
-      <div class="row"><label class="muted">Tên file (name)</label><input id="fname_inp" placeholder="Tên file (vd: huongdan.pdf)"></div>
-      <div class="row"><label class="muted">Slug</label><input id="fslug_inp" placeholder="Slug (không hiển thị ở bảng, dùng cho URL nội bộ)"></div>
-      <div class="row"><label class="muted">URL</label><input id="furl_inp" placeholder="Link hoặc đường dẫn nội bộ"></div>
-
-      <hr style="border:none;border-top:1px solid rgba(7,16,36,0.04);margin:12px 0">
-
-      <div class="row"><div class="muted"><strong>Quyền xem</strong> — Cho phép ai xem tài liệu này</div></div>
-      <div class="row" style="display:flex;gap:12px;align-items:center">
-        <label style="display:flex;gap:8px;align-items:center"><input id="fquyen_all" type="checkbox"> <strong>Tất cả</strong></label>
-        <div class="muted">Hoặc chọn user bên dưới (Ctrl/Cmd để chọn nhiều)</div>
-      </div>
-
-      <div class="row">
-        <label class="muted">Chọn user</label>
-        <div style="display:flex;gap:8px;align-items:center">
-          <select id="fquyen_select" multiple class="multiselect-list" style="flex:1"></select>
-          <div class="controls-helpers" style="flex-direction:column">
-            <button id="selectAllBtn" class="btn ghost" title="Chọn tất cả" style="white-space:nowrap">Chọn tất cả</button>
-            <button id="clearSelectBtn" class="btn ghost" title="Bỏ chọn tất cả" style="white-space:nowrap">Bỏ chọn</button>
-          </div>
-        </div>
-        <div class="muted" style="margin-top:6px">Chọn user mà tài khoản này được phép xem tài liệu. Nếu bật "Tất cả" thì mọi người đều xem được.</div>
-      </div>
-
-      <div style="text-align:right;margin-top:8px;display:flex;gap:8px;justify-content:flex-end">
-        <button id="saveBtn" class="btn primary">Lưu</button>
-        <button id="cancelBtn" class="btn ghost">Hủy</button>
+      <div style="display:flex;gap:8px">
+        <button id="btnReload" class="btn btn-ghost">⟳ Tải lại</button>
+        <button id="btnAdd" class="btn btn-add">+ Thêm tài liệu</button>
       </div>
     </div>
-  </div>
 
-  <div id="toast" class="toast" role="status" aria-live="polite"></div>
-  <div id="loader" class="loader" aria-hidden="true"><div class="spinner">⟳</div></div>
+    <div class="table-wrap">
+      <table aria-live="polite">
+        <thead>
+          <tr>
+            <th style="width:90px">ID</th>
+            <th>Tên file</th>
+            <th>Slug</th>
+            <th>URL</th>
+            <th>Quyền xem</th>
+            <th>Hành động</th>
+          </tr>
+        </thead>
+        <tbody id="tb">
+          <tr><td colspan="6" style="text-align:center;padding:18px">Chưa tải dữ liệu...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- popup form -->
+<div id="popup" class="popup" aria-hidden="true">
+  <div class="form" role="dialog" aria-modal="true">
+    <h3 id="ftitle">Thêm tài liệu</h3>
+
+    <input id="fid" type="hidden" />
+
+    <!-- Danh mục: chọn sẵn từ list (gửi lên API dưới trường `title` để giữ nguyên các route) -->
+    <div class="row">
+      <label class="small">Danh mục (chọn sẵn)</label>
+      <select id="fcategory_sel">
+        <option value="">— Chọn danh mục —</option>
+        <!-- options sẽ được populate từ dữ liệu server -->
+      </select>
+    </div>
+
+    <div class="row"><input id="fname_inp" placeholder="Tên file (name)" /></div>
+    <div class="row"><input id="fslug_inp" placeholder="Slug (ví dụ TaiLieuNganh)" /></div>
+    <div class="row"><input id="furl_inp" placeholder="URL (link hoặc đường dẫn nội bộ)" /></div>
+
+    <hr />
+
+    <div class="row small"><strong>Quyền xem (quyen)</strong> — cho phép ai được xem tài liệu này</div>
+
+    <div class="row" style="display:flex;gap:8px;align-items:center">
+      <label style="display:flex;gap:8px;align-items:center"><input id="fquyen_all" type="checkbox"/> Cho phép <strong>Tất cả</strong></label>
+      <span class="muted">hoặc chọn từng user bên dưới</span>
+    </div>
+
+    <div class="row">
+      <label class="small">Chọn user (nhấn Ctrl/Cmd để chọn nhiều)</label>
+      <select id="fquyen_select" multiple class="multiselect-list"></select>
+
+      <!-- NEW: nút Bỏ chọn để dễ thao tác -->
+      <div style="margin-top:8px; display:flex; gap:8px; align-items:center;">
+        <button id="btnClearSelect" type="button" class="btn btn-ghost" style="padding:6px 10px;font-size:13px">Bỏ chọn</button>
+        <button id="btnSelectAllVisible" type="button" class="btn btn-ghost" style="padding:6px 10px;font-size:13px">Chọn tất cả</button>
+        <span class="muted" style="margin-left:6px">Dùng để nhanh thao tác lựa chọn user</span>
+      </div>
+
+      <div class="muted" style="margin-top:6px">Chọn user mà tài khoản này được phép xem tài liệu. Nếu bật "all" thì tất cả đều xem được.</div>
+    </div>
+
+    <div style="text-align:right;margin-top:8px">
+      <button id="saveBtn" class="btn btn-add">Lưu</button>
+      <button id="cancelBtn" class="btn btn-ghost">Hủy</button>
+    </div>
+  </div>
+</div>
+
+<!-- category view popup -->
+<div id="catPopup" class="popup" aria-hidden="true">
+  <div class="cat-card" role="dialog" aria-modal="true">
+    <h3 style="margin:0 0 8px;color:var(--accent)">Danh mục tài liệu</h3>
+    <div id="catContent" class="small muted">—</div>
+    <div style="text-align:right;margin-top:12px">
+      <button id="closeCat" class="btn btn-ghost">Đóng</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
 
 <script>
-/* ========== CONFIG ========== */
+/* ================= CONFIG ================= */
 /* Thay API nếu deploy Apps Script khác */
-const API = "https://script.google.com/macros/s/AKfycbxe1dxDcrRp5yYz4xNFT4iFqI14XcOzkou8hFOaV0yCgcvCsMjMpYcoyTXAEX4wRAqA/exec";
+const API = "https://script.google.com/macros/s/AKfycbxrj25sWeIPBbhw7HzhC8CEdol5bW1nV1ZtppCbs3lLCn9CEgl__mWSw6WHbZDQjXM-/exec";
+
+/* LẤY token + role từ localStorage giống UI Users */
+const rawUser = localStorage.getItem("loggedInUser");
+if(!rawUser){ alert('Vui lòng đăng nhập'); window.location.href = '/login.html'; }
+let token = "";
+let currentRole = "";
+try{
+  const parsed = JSON.parse(rawUser);
+  token = parsed.token || (parsed.user && parsed.user.token) || "";
+  if(parsed.user && parsed.user.role) currentRole = parsed.user.role;
+  if(!currentRole && token){
+    const payload = parseTokenPayload(token);
+    if(payload){ currentRole = payload.role || ""; }
+  }
+} catch(e){
+  console.error(e);
+  localStorage.removeItem("loggedInUser");
+  alert('Token không hợp lệ. Vui lòng đăng nhập lại.');
+  window.location.href = '/login.html';
+}
+
+/* nếu role không phải admin/editor -> chặn */
+if(!currentRole){ alert('Không xác định role.'); localStorage.removeItem('loggedInUser'); window.location.href='/login.html'; }
+const roleLower = String(currentRole).toLowerCase();
+if(roleLower !== 'admin' && roleLower !== 'editor'){ alert('Bạn không có quyền truy cập trang này'); window.location.href='/login.html'; }
 
 /* ========== ELEMENTS ========== */
 const tb = document.getElementById('tb');
-const cardsRoot = document.getElementById('cards');
 const popup = document.getElementById('popup');
+const catPopup = document.getElementById('catPopup');
 const toast = document.getElementById('toast');
-const loader = document.getElementById('loader');
-
 const btnAdd = document.getElementById('btnAdd');
 const btnReload = document.getElementById('btnReload');
-const logoutBtn = document.getElementById('logoutBtn');
-const clearSearch = document.getElementById('clearSearch');
-const qInput = document.getElementById('q');
-
 const fid = document.getElementById('fid');
-const fcategory_select = document.getElementById('fcategory_select');
+const fcategory_sel = document.getElementById('fcategory_sel');
 const fname_inp = document.getElementById('fname_inp');
 const fslug_inp = document.getElementById('fslug_inp');
 const furl_inp = document.getElementById('furl_inp');
 const fquyen_all = document.getElementById('fquyen_all');
 const fquyen_select = document.getElementById('fquyen_select');
-const selectAllBtn = document.getElementById('selectAllBtn');
-const clearSelectBtn = document.getElementById('clearSelectBtn');
 const saveBtn = document.getElementById('saveBtn');
 const cancelBtn = document.getElementById('cancelBtn');
-const metaEl = document.getElementById('meta');
+const qInput = document.getElementById('q');
+const btnClearSelect = document.getElementById('btnClearSelect'); // NEW
+const btnSelectAllVisible = document.getElementById('btnSelectAllVisible'); // NEW
+const catContent = document.getElementById('catContent');
+const closeCat = document.getElementById('closeCat');
 
-let session = null;
-let role = '';
-let roleLower = '';
-let ALL_USERS = [];
-let ALL_TITLES = [];
-let DATA = [];
+let allUsers = []; // cache users for multiselect
+let allCategories = []; // cache categories (trước đây là titles)
 
-/* ========== HELPERS ========== */
-function showToast(msg, time=2200){
-  toast.textContent = msg;
-  toast.classList.add('show');
-  setTimeout(()=> toast.classList.remove('show'), time);
-}
-function showLoader(on=true){
-  loader.style.display = on ? 'flex' : 'none';
-  loader.setAttribute('aria-hidden', !on);
-}
-function esc(s){ return String(s||'').replace(/[&<>\"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;"}[c])); }
-function parseJwtPayload(t){
+/* ========== helpers ========== */
+function showToast(msg){ toast.textContent = msg; toast.classList.add('show'); toast.style.display='block'; setTimeout(()=>{ toast.classList.remove('show'); toast.style.display='none'; }, 2400); }
+function escapeHtml(s){ return String(s||'').replace(/[&<>\"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;"}[c])); }
+function parseTokenPayload(t){
   try{
     if(!t || t.indexOf('.')<0) return null;
-    let body = t.split('.')[1];
+    let body = t.split('.')[0];
     body = body.replace(/-/g,'+').replace(/_/g,'/');
     while(body.length % 4) body += '=';
     const json = atob(body);
     return JSON.parse(json);
   }catch(e){ return null; }
 }
-function slugify(s){ if(!s) return ''; let x=String(s).replace(/Đ/g,'D').replace(/đ/g,'d'); x=x.normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-zA-Z0-9\s-]/g,'').trim().replace(/\s+/g,'-').toLowerCase(); return x; }
-function parseQuyen(s){ if(!s) return []; if(String(s).trim().toLowerCase()==='all') return ['all']; return String(s).split(',').map(x=>x.trim()).filter(Boolean); }
+function parseQuyen(s){
+  if(!s) return [];
+  if(String(s).trim().toLowerCase()==='all') return ['all'];
+  return String(s).split(',').map(x=>x.trim()).filter(x=>x);
+}
 function resolveQuyenText(q){
   if(!q) return '-';
   if(String(q).trim().toLowerCase()==='all') return '<span class="badge all">all</span>';
   const arr = parseQuyen(q);
-  const names = arr.map(id => { const u = ALL_USERS.find(x=>String(x.id)===String(id)); return u ? (u.username || u.email || id) : id; });
-  if(names.length === 0) return '-';
-  if(names.length > 3) return `${names.length} users`;
-  return esc(names.join(', '));
+  const names = arr.map(id=>{ const u = allUsers.find(x=>String(x.id)===String(id)); return u? (u.username || u.email) : id; });
+  if(names.length===0) return '-';
+  if(names.length>3) return `${names.length} users`;
+  return escapeHtml(names.join(', '));
 }
 
-/* ========== AUTH & INIT ========== */
-function initAuthAndUI(){
-  const raw = localStorage.getItem('loggedInUser');
-  if(!raw){ alert('Vui lòng đăng nhập'); location.href = '/login.html'; return; }
-  try{
-    session = JSON.parse(raw);
-    const tok = session.token || (session.user && session.user.token) || '';
-    let r = (session.user && session.user.role) || '';
-    if(!r && tok){ const payload = parseJwtPayload(tok); if(payload) r = payload.role || ''; }
-    role = r || '';
-    roleLower = String(role).toLowerCase();
-
-    const displayName = esc(session.user?.username || session.user?.email || 'Admin');
-    metaEl.innerHTML = `<div class="user-name-box"><div class="name">${displayName}</div><div class="role">Role: ${esc(role||'')}</div></div>`;
-
-    if(!role || (roleLower !== 'admin' && roleLower !== 'editor')){ alert('Bạn không có quyền truy cập trang này'); localStorage.removeItem('loggedInUser'); location.href='/login.html'; return; }
-
-    if(roleLower !== 'admin' && roleLower !== 'editor'){ btnAdd.style.display = 'none'; }
-
-  }catch(e){
-    console.error(e); localStorage.removeItem('loggedInUser'); alert('Token không hợp lệ'); location.href='/login.html';
-  }
+/* populate category select from allCategories */
+function populateCategorySelect(){
+  // clear existing options (keep placeholder)
+  const selected = fcategory_sel.value;
+  fcategory_sel.innerHTML = '<option value="">— Chọn danh mục —</option>' + allCategories.map(t => `<option value="${escapeHtml(t)}">${escapeHtml(t)}</option>`).join('');
+  if(selected) fcategory_sel.value = selected;
 }
 
-/* ========== LOAD USERS ========== */
+/* ========== load users for multiselect (admin/editor both may need) ========== */
 async function loadUsers(){
   try{
     let users = [];
-    if(roleLower === 'admin'){
-      const body = new URLSearchParams({ route:'users-list', token: session.token });
+    const roleL = String(currentRole).toLowerCase();
+    if(roleL === 'admin'){
+      const body = new URLSearchParams({ route:'users-list', token });
       const res = await fetch(API, { method:'POST', body });
-      const j = await res.json();
-      if(j && j.status === 'success') users = j.data || [];
+      const json = await res.json();
+      if(json && json.status === 'success') users = json.data || [];
     } else {
-      const res = await fetch(API);
-      const j = await res.json();
-      users = (j && j.data && j.data.Users) ? j.data.Users : [];
+      const res = await fetch(API, { method:'GET', cache:'no-store' });
+      const json = await res.json();
+      if(json && json.status === 'success' && json.data && json.data.Users) users = json.data.Users;
     }
-    ALL_USERS = users;
-    populateUserSelect();
+    allUsers = users;
+    populateUserOptions();
   }catch(e){
-    console.error('loadUsers', e);
-    ALL_USERS = [];
-    populateUserSelect();
+    console.error('loadUsers err', e);
+    allUsers = [];
+    populateUserOptions();
   }
 }
-function populateUserSelect(){
+function populateUserOptions(){
   fquyen_select.innerHTML = '';
-  ALL_USERS.forEach(u=>{
+  allUsers.forEach(u=>{
     const opt = document.createElement('option');
-    opt.value = u.id || u.email || u.username || '';
-    opt.textContent = u.username || u.email || u.id || '';
+    opt.value = u.id || '';
+    opt.textContent = (u.username || u.email || u.id);
     fquyen_select.appendChild(opt);
   });
 }
 
-/* ========== populate categories into select ========== */
-function populateCategories(){
-  fcategory_select.innerHTML = '<option value="">-- Chọn danh mục --</option>';
-  ALL_TITLES.forEach(t => {
-    const opt = document.createElement('option');
-    opt.value = t;
-    opt.textContent = t;
-    fcategory_select.appendChild(opt);
-  });
-}
-
-/* ========== LOAD DOCUMENTS ========= */
+/* ========== load documents (tailieu-list) ========== */
 async function loadDocs(){
-  tb.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:18px">Đang tải...</td></tr>`;
-  cardsRoot.innerHTML = '';
-  cardsRoot.hidden = true;
-  showLoader(true);
+  tb.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:18px">Đang tải...</td></tr>';
   try{
-    const body = new URLSearchParams({ route:'tailieu-list', token: session.token });
+    const body = new URLSearchParams({ route:'tailieu-list', token });
     const res = await fetch(API, { method:'POST', body });
-    const j = await res.json();
-    if(!j || j.status !== 'success'){ tb.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:18px">${esc(j && j.message ? j.message : 'Không thể lấy dữ liệu')}</td></tr>`; showLoader(false); return; }
-    let items = j.data || [];
+    const json = await res.json();
+    if(!json || json.status !== 'success'){
+      tb.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:18px">Lỗi khi lấy dữ liệu</td></tr>';
+      showToast(json && json.message ? json.message : 'Lỗi server');
+      return;
+    }
+    const items = json.data || [];
 
-    items = items.filter(it => it && it.title && String(it.title).trim());
+    // build category suggestions (unique, non-empty) từ trường title (để giữ tương thích API)
+    allCategories = Array.from(new Set(items.map(it => (it.title||'').trim()).filter(Boolean)));
+    populateCategorySelect();
 
-    const uid = String(session.user?.id || session.user?.email || session.user?.username || '').trim();
-
-    const visible = items.filter(it => {
-      if(roleLower === 'admin') return true;
-      const qArr = parseQuyen(it.quyen || '');
-      if(qArr.includes('all')) return true;
-      return qArr.includes(uid);
-    });
-
-    DATA = visible.slice();
-
-    ALL_TITLES = Array.from(new Set(visible.map(it => (it.title||'').trim()).filter(Boolean)));
-    populateCategories();
-
-    if(visible.length === 0){ tb.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:18px">Không có tài liệu ngành được phép xem.</td></tr>`; showLoader(false); return; }
-
-    tb.innerHTML = visible.map(it=>{
-      const id = esc(it.id||'');
-      const title = esc(it.title||'');
-      const name = esc(it.name||'');
-      const urlCell = it.url ? `<a href="${esc(it.url)}" target="_blank" rel="noopener">Link</a>` : '-';
-      const quyenText = resolveQuyenText(it.quyen||'');
-      const djson = esc(JSON.stringify(it||{}));
-
-      const qArr = parseQuyen(it.quyen || '');
-      const uidNow = String(session.user?.id || session.user?.email || session.user?.username || '').trim();
-      const canEditorModify = (roleLower === 'admin') || (roleLower === 'editor' && (qArr.includes('all') || qArr.includes(uidNow)));
-
-      const actionsForAdmin = `<button class="action-btn edit" data-act="edit" data-json='${djson}'>✏ Sửa</button>
-                               <button class="action-btn perm" data-act="perm" data-json='${djson}'>⚙ Quyền</button>
-                               <button class="action-btn del" data-act="del" data-id="${id}">🗑 Xóa</button>`;
-      const actionsForEditorAllowed = `<button class="action-btn edit" data-act="edit" data-json='${djson}'>✏ Sửa</button>
-                                      <button class="action-btn del" data-act="del" data-id="${id}">🗑 Xóa</button>`;
-      const actionsForViewer = `<button class="action-btn view" data-act="edit" data-json='${djson}'>👁️ Xem</button>`;
-
-      let actionsHtml = '';
-      if(roleLower === 'admin') actionsHtml = actionsForAdmin;
-      else if(roleLower === 'editor') actionsHtml = canEditorModify ? actionsForEditorAllowed : actionsForViewer;
-      else actionsHtml = actionsForViewer;
-
-      // note: removed slug column (no longer rendered)
-      return `<tr data-id="${id}">
-        <td style="max-width:120px;word-break:break-word">${id}</td>
-        <td><span class="cat-badge">${title}</span><span class="sr-only">${title}</span></td>
-        <td class="name-cell"><div class="cell-inner" title="${name}">${name}</div></td>
-        <td style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${urlCell}</td>
-        <td title="${esc(it.quyen||'')}" style="white-space:nowrap">${quyenText}</td>
-        <td style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
-          ${actionsHtml}
+    if(items.length === 0){
+      tb.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:18px">Không có dữ liệu</td></tr>';
+      return;
+    }
+    // render rows
+    tb.innerHTML = items.map(it=>{
+      const qText = resolveQuyenText(it.quyen || '');
+      const urlCell = it.url ? `<a href="${escapeHtml(it.url)}" target="_blank" rel="noopener">Link</a>` : '';
+      const dataJson = escapeHtml(JSON.stringify(it));
+      const cat = escapeHtml(it.title || '');
+      return `<tr data-id="${escapeHtml(it.id||'')}">
+        <td style="max-width:120px;word-break:break-word">${escapeHtml(it.id||'')}</td>
+        <td>${escapeHtml(it.name||'')}</td>
+        <td>${escapeHtml(it.slug||'')}</td>
+        <td>${urlCell}</td>
+        <td title="${escapeHtml(it.quyen||'')}" style="white-space:nowrap">${qText}</td>
+        <td>
+          <button class="action-btn cat" data-cat="${cat}" data-id="${escapeHtml(it.id||'')}">📂 Danh mục</button>
+          <button class="action-btn edit" data-id="${escapeHtml(it.id||'')}" data-json='${dataJson}'>✏ Sửa</button>
+          <button class="action-btn perm" data-id="${escapeHtml(it.id||'')}" data-json='${dataJson}'>⚙ Quyền</button>
+          ${roleLower === 'admin' ? `<button class="action-btn del" data-id="${escapeHtml(it.id||'')}">🗑 Xóa</button>` : ''}
         </td>
       </tr>`;
     }).join('');
-
-    // mobile cards (slug removed)
-    cardsRoot.hidden = false;
-    cardsRoot.innerHTML = visible.map(it => {
-      const title = esc(it.title||'');
-      const name = esc(it.name||'');
-      const urlCell = it.url ? `<a href="${esc(it.url)}" target="_blank" rel="noopener">Link</a>` : '-';
-      const quyenText = resolveQuyenText(it.quyen||'');
-      const id = esc(it.id||'');
-      const qArr = parseQuyen(it.quyen || '');
-      const uidNow = String(session.user?.id || session.user?.email || session.user?.username || '').trim();
-      const canEditorModify = (roleLower === 'admin') || (roleLower === 'editor' && (qArr.includes('all') || qArr.includes(uidNow)));
-
-      const actions = roleLower === 'admin' ? `<div style="display:flex;gap:8px"><button class="btn ghost" onclick="openEditFromCard('${id}')">Sửa</button><button class="btn danger" onclick="deleteDoc('${id}')">Xóa</button></div>`
-                    : (roleLower === 'editor' && canEditorModify) ? `<div style="display:flex;gap:8px"><button class="btn ghost" onclick="openEditFromCard('${id}')">Sửa</button><button class="btn danger" onclick="deleteDoc('${id}')">Xóa</button></div>`
-                    : `<div style="display:flex;gap:8px"><button class="btn ghost" onclick="openEditFromCard('${id}')">Xem</button></div>`;
-
-      return `<div class="card-item" role="article">
-                <div style="display:flex;justify-content:space-between;align-items:center">
-                  <strong><span class="cat-badge">${title}</span></strong>
-                  <div class="muted">${urlCell}</div>
-                </div>
-                <div class="meta muted" style="margin-top:8px; color:red">Tên file văn bản: ${name} • Quyền: ${quyenText}</div>
-                ${actions}
-              </div>`;
-    }).join('');
-
-    attachRowListeners();
+    attachDocListeners();
   }catch(e){
-    console.error('loadDocs', e);
-    tb.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:18px">Lỗi tải dữ liệu</td></tr>`;
-    showToast('Lỗi khi tải dữ liệu');
-  }finally{
-    showLoader(false);
+    console.error('loadDocs err', e);
+    tb.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:18px">Lỗi tải dữ liệu</td></tr>';
+    showToast('Lỗi tải dữ liệu');
   }
 }
 
-/* ========== attach row listeners for edit/delete/perm ========== */
-function attachRowListeners(){
-  const uid = String(session.user?.id || session.user?.email || session.user?.username || '').trim();
-
-  document.querySelectorAll('button[data-act]').forEach(b=>{
-    const act = b.getAttribute('data-act');
-    b.onclick = ()=>{
-      if(act === 'edit' || act === 'perm'){
-        try{
-          const data = JSON.parse(b.getAttribute('data-json'));
-          const qArr = parseQuyen(data.quyen || '');
-          const canModify = (roleLower === 'admin') || (roleLower === 'editor' && (qArr.includes('all') || qArr.includes(uid)));
-          if(act === 'perm' && roleLower !== 'admin'){
-            alert('Chỉ admin mới có thể thay đổi quyền.');
-            return;
-          }
-          const readOnly = !canModify;
-          openEditForm(data, readOnly);
-        }catch(e){
-          const readOnlyFallback = roleLower !== 'admin';
-          openEditForm({ id: b.dataset.id }, readOnlyFallback);
-        }
-      } else if(act === 'del'){
-        const id = b.dataset.id;
-        const item = DATA.find(x=>String(x.id)===String(id));
-        const qArr = parseQuyen(item?.quyen || '');
-        const canDelete = (roleLower === 'admin') || (roleLower === 'editor' && (qArr.includes('all') || qArr.includes(uid)));
-        if(!canDelete){
-          alert('Bạn không có quyền xóa mục này.');
-          return;
-        }
-        if(confirm('Bạn chắc chắn muốn xóa?')) deleteDoc(id);
-      }
+/* ========== attach buttons ========== */
+function attachDocListeners(){
+  document.querySelectorAll('.edit').forEach(b=>{
+    b.onclick = ()=> {
+      let obj = {};
+      try{ obj = JSON.parse(b.getAttribute('data-json')); }catch(e){ obj = { id: b.dataset.id }; }
+      openEditForm(obj);
     };
   });
+  document.querySelectorAll('.perm').forEach(b=>{
+    b.onclick = ()=> {
+      let obj = {};
+      try{ obj = JSON.parse(b.getAttribute('data-json')); }catch(e){ obj = { id: b.dataset.id }; }
+      openPermForm(obj);
+    };
+  });
+  document.querySelectorAll('.cat').forEach(b=>{
+    b.onclick = ()=> {
+      const cat = b.getAttribute('data-cat') || '';
+      catContent.textContent = cat || 'Không có danh mục';
+      catPopup.style.display = 'flex';
+      catPopup.setAttribute('aria-hidden','false');
+    };
+  });
+  if(roleLower === 'admin'){
+    document.querySelectorAll('.del').forEach(b=>{
+      b.onclick = ()=> {
+        if(!confirm('Bạn chắc chắn muốn xóa?')) return;
+        deleteDoc(b.dataset.id);
+      };
+    });
+  }
 }
 
-/* ========== popup open/close ========== */
-function openEditForm(item = {}, readOnly = false){
-  document.getElementById('ftitle').textContent = item && item.id ? (readOnly ? 'Xem tài liệu' : 'Sửa tài liệu') : 'Thêm tài liệu';
+/* ========== open / cancel popup ========== */
+btnAdd.onclick = ()=> openEditForm();
+function openEditForm(item = {}){
+  document.getElementById('ftitle').textContent = item && item.id ? 'Sửa tài liệu' : 'Thêm tài liệu';
   fid.value = item.id || '';
-  if(item && item.title){
-    const t = String(item.title);
-    if(t && !ALL_TITLES.includes(t)){
-      ALL_TITLES.unshift(t);
-      populateCategories();
-    }
-    fcategory_select.value = t;
-  } else {
-    fcategory_select.value = '';
-  }
+  // lưu danh mục vào trường title để giữ tương thích với API cũ
+  fcategory_sel.value = item.title || '';
   fname_inp.value = item.name || '';
-  fslug_inp.value = item.slug || (item.title ? slugify(item.title) : '');
+  fslug_inp.value = item.slug || 'TaiLieuNganh';
   furl_inp.value = item.url || '';
+  // permission controls
   fquyen_all.checked = false;
   Array.from(fquyen_select.options).forEach(o=> o.selected = false);
   if(item && item.quyen){
     const q = String(item.quyen).trim();
-    if(q.toLowerCase() === 'all') fquyen_all.checked = true;
+    if(q.toLowerCase()==='all') fquyen_all.checked = true;
     else {
-      const arr = q.split(',').map(x=>x.trim()).filter(Boolean);
-      arr.forEach(id => {
+      const arr = q.split(',').map(x=>x.trim()).filter(x=>x);
+      arr.forEach(id=>{
         const opt = fquyen_select.querySelector(`option[value="${id}"]`);
         if(opt) opt.selected = true;
       });
     }
   }
-
-  Array.from(document.querySelectorAll('.form input, .form select')).forEach(el => el.disabled = !!readOnly);
-  if(readOnly) saveBtn.style.display = 'none'; else saveBtn.style.display = '';
-
   popup.style.display = 'flex';
   popup.setAttribute('aria-hidden','false');
-  setTimeout(()=> document.querySelector('.form').classList.add('show'), 20);
 }
-function closePopup(){
-  document.querySelector('.form').classList.remove('show');
-  setTimeout(()=> { popup.style.display = 'none'; popup.setAttribute('aria-hidden','true'); }, 160);
-}
-cancelBtn.onclick = closePopup;
-function openEditFromCard(id){
-  const it = DATA.find(x=>String(x.id)===String(id));
-  if(it){
-    const qArr = parseQuyen(it.quyen || '');
-    const uid = String(session.user?.id || session.user?.email || session.user?.username || '').trim();
-    const canModify = (roleLower === 'admin') || (roleLower === 'editor' && (qArr.includes('all') || qArr.includes(uid)));
-    openEditForm(it, !canModify);
-  } else {
-    openEditForm({ id }, roleLower !== 'admin');
-  }
+function openPermForm(item = {}){
+  openEditForm(item);
+  fquyen_select.focus();
 }
 
-/* multiselect helpers */
-selectAllBtn.addEventListener('click', ()=> {
-  Array.from(fquyen_select.options).forEach(o => o.selected = true);
-  fquyen_all.checked = false;
-  showToast('Đã chọn tất cả user');
-});
-clearSelectBtn.addEventListener('click', ()=> {
-  Array.from(fquyen_select.options).forEach(o => o.selected = false);
-  fquyen_all.checked = false;
-  showToast('Đã bỏ chọn tất cả user');
-});
-fquyen_all.addEventListener('change', ()=> {
-  if(fquyen_all.checked){
-    Array.from(fquyen_select.options).forEach(o => o.selected = false);
-    showToast('Bật "Tất cả" — mọi user được phép xem');
-  }
-});
+cancelBtn.onclick = ()=> { popup.style.display='none'; popup.setAttribute('aria-hidden','true'); };
+closeCat.onclick = ()=> { catPopup.style.display='none'; catPopup.setAttribute('aria-hidden','true'); };
 
-/* save document */
-async function saveDocument(){
+/* ========== save (add/update) ========== */
+saveBtn.onclick = async ()=>{
   const id = fid.value;
   const route = id ? 'tailieu-update' : 'tailieu-add';
+  // build quyen
   let quyen = '';
   if(fquyen_all.checked) quyen = 'all';
   else {
-    const sel = Array.from(fquyen_select.selectedOptions).map(o=>o.value).filter(Boolean);
+    const sel = Array.from(fquyen_select.selectedOptions).map(o=>o.value).filter(v=>v);
     quyen = sel.join(',');
   }
 
-  const selectedTitle = (fcategory_select.value || '').trim();
-
   const payload = {
-    token: session.token,
+    token,
     id,
-    title: selectedTitle,
+    // gửi trường title như trước nhưng bây giờ nó là danh mục
+    title: fcategory_sel.value.trim(),
     name: fname_inp.value.trim(),
-    slug: fslug_inp.value.trim() || slugify(selectedTitle),
+    slug: fslug_inp.value.trim() || 'TaiLieuNganh',
     url: furl_inp.value.trim(),
     quyen
   };
-  if(!payload.title){ showToast('Vui lòng chọn danh mục (không được để trống)'); return; }
-  showLoader(true);
+
+  // basic validation
+  if(!payload.title){ showToast('Vui lòng chọn danh mục'); return; }
+
   try{
     const res = await fetch(API + '?route=' + route, { method:'POST', body: new URLSearchParams(payload) });
-    const j = await res.json();
-    if(j && (j.status === 'success' || j.id || j.http_status === 201)){ showToast(j.message || 'Lưu thành công'); closePopup(); await loadDocs(); }
-    else showToast(j && j.message ? j.message : 'Lỗi lưu dữ liệu');
+    const json = await res.json();
+    if(json && (json.status==='success' || json.http_status===201 || json.id)){
+      showToast(json.message || 'Lưu thành công');
+      popup.style.display = 'none';
+      // update danh sách ngay
+      await loadDocs();
+    } else {
+      showToast(json && json.message ? json.message : 'Lỗi lưu');
+    }
   }catch(e){
-    console.error('save', e);
+    console.error('save err', e);
     showToast('Lỗi khi lưu dữ liệu');
-  }finally{ showLoader(false); }
-}
-saveBtn.addEventListener('click', saveDocument);
-
-/* delete */
-async function deleteDoc(id){
-  const item = DATA.find(x=>String(x.id)===String(id));
-  const uid = String(session.user?.id || session.user?.email || session.user?.username || '').trim();
-  const qArr = parseQuyen(item?.quyen || '');
-  const canDelete = (roleLower === 'admin') || (roleLower === 'editor' && (qArr.includes('all') || qArr.includes(uid)));
-  if(!canDelete){
-    showToast('Bạn không có quyền xóa mục này');
-    return;
   }
+};
 
-  showLoader(true);
+/* ========== delete doc (admin only) ========== */
+async function deleteDoc(id){
   try{
-    const res = await fetch(API + '?route=tailieu-delete', { method:'POST', body: new URLSearchParams({ token: session.token, id }) });
-    const j = await res.json();
-    if(j && j.status === 'success'){ showToast(j.message || 'Đã xóa'); await loadDocs(); }
-    else showToast(j && j.message ? j.message : 'Lỗi xóa');
+    const res = await fetch(API + '?route=tailieu-delete', { method:'POST', body: new URLSearchParams({ token, id }) });
+    const json = await res.json();
+    if(json && json.status === 'success'){ showToast(json.message || 'Đã xóa'); await loadDocs(); }
+    else showToast(json && json.message ? json.message : 'Lỗi xóa');
   }catch(e){
-    console.error('delete', e);
+    console.error('deleteDoc err', e);
     showToast('Lỗi xóa');
-  }finally{ showLoader(false); }
+  }
 }
 
-/* UI events */
-btnAdd.addEventListener('click', ()=> openEditForm());
-btnReload.addEventListener('click', async ()=> { await loadUsers(); await loadDocs(); });
-logoutBtn.addEventListener('click', ()=> { localStorage.removeItem('loggedInUser'); location.href = '/login.html'; });
-clearSearch.addEventListener('click', ()=> { qInput.value=''; qInput.dispatchEvent(new Event('input')); });
+/* ========== reload / search / shortcuts ========== */
+btnReload.onclick = async ()=> { await loadUsers(); await loadDocs(); };
 
-qInput.addEventListener('input', ()=> {
-  const v = qInput.value.trim().toLowerCase();
-  Array.from(tb.querySelectorAll('tr')).forEach(tr => {
-    tr.style.display = tr.textContent.toLowerCase().includes(v) ? '' : 'none';
+qInput.oninput = ()=>{
+  const q = qInput.value.trim().toLowerCase();
+  document.querySelectorAll('#tb tr').forEach(tr=>{
+    tr.style.display = (tr.innerText.toLowerCase().includes(q)) ? '' : 'none';
   });
-  Array.from(cardsRoot.children).forEach(c => { c.style.display = c.textContent.toLowerCase().includes(v) ? '' : 'none'; });
+};
+
+// Ctrl+Shift+U: clear multiselect
+document.addEventListener('keydown', (e)=>{
+  if(e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'u'){
+    e.preventDefault();
+    Array.from(fquyen_select.options).forEach(o=> o.selected = false);
+    fquyen_all.checked = false;
+    showToast('Đã bỏ chọn tất cả user');
+  }
 });
 
-/* ESC to close popup */
-document.addEventListener('keydown', (e)=> { if(e.key === 'Escape') closePopup(); });
+/* ========== NEW: Clear / Select-all buttons handlers ========== */
+btnClearSelect && (btnClearSelect.onclick = (e) => {
+  e.preventDefault();
+  Array.from(fquyen_select.options).forEach(o=> o.selected = false);
+  fquyen_all.checked = false;
+  fquyen_select.focus();
+  showToast('Đã bỏ chọn tất cả user');
+});
 
-/* responsive toggle */
-function updateResponsive(){ if(window.innerWidth <= 820){ document.querySelector('.table-wrap').style.display = 'none'; cardsRoot.style.display = ''; } else { document.querySelector('.table-wrap').style.display = ''; cardsRoot.style.display = 'none'; } }
-window.addEventListener('resize', updateResponsive);
-updateResponsive();
+btnSelectAllVisible && (btnSelectAllVisible.onclick = (e) => {
+  e.preventDefault();
+  // chọn tất cả option hiện có trong select (không ảnh hưởng đến checkbox "all")
+  Array.from(fquyen_select.options).forEach(o=> o.selected = true);
+  fquyen_select.focus();
+  showToast('Đã chọn tất cả user hiển thị');
+});
 
-/* init */
-async function bootstrap(){
-  try{
-    const raw = localStorage.getItem('loggedInUser');
-    if(!raw){ alert('Vui lòng đăng nhập'); location.href = '/login.html'; return; }
-    session = JSON.parse(raw);
-    const tok = session.token || (session.user && session.user.token) || '';
-    let r = (session.user && session.user.role) || '';
-    if(!r && tok){ const payload = parseJwtPayload(tok); if(payload) r = payload.role || ''; }
-    role = r || '';
-    roleLower = String(role).toLowerCase();
-
-    const displayName = esc(session.user?.username || session.user?.email || 'Admin');
-    metaEl.innerHTML = `<div class="user-name-box"><div class="name">${displayName}</div><div class="role">Role: ${esc(role||'')}</div></div>`;
-
-    if(!role || (roleLower !== 'admin' && roleLower !== 'editor')){ alert('Bạn không có quyền truy cập trang này'); localStorage.removeItem('loggedInUser'); location.href='/login.html'; return; }
-
-    if(roleLower !== 'admin' && roleLower !== 'editor'){ btnAdd.style.display = 'none'; }
-
-    showLoader(true);
-    await loadUsers();
-    await loadDocs();
-  }catch(e){
-    console.error('bootstrap', e);
-    showToast('Lỗi khởi tạo');
-  }finally{
-    showLoader(false);
-  }
-}
-initAuthAndUI();
-bootstrap();
+/* ========== init ========== */
+(async function init(){
+  await loadUsers();
+  await loadDocs();
+})();
 </script>
 </body>
 </html>
