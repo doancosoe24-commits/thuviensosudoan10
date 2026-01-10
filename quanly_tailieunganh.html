@@ -2,84 +2,101 @@
 <html lang="vi">
 <head>
 <meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
-    <link rel="shortcut icon" href="./img/logo.png" type="image/x-icon">
-<title>Admin - Tài liệu ngành (Quản lý quyền & Danh mục)</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<link rel="shortcut icon" href="./img/logo.png" type="image/x-icon">
+<title>Admin - Tài liệu ngành (Quản lý quyền)</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
 :root{
-  --bg:#f4f7fb;
+  --bg:#f3f6fb;
   --card:#ffffff;
   --text:#0f172a;
   --accent:#0b6cff;
   --muted:#6b7280;
-  --radius:12px;
-  --shadow:0 8px 24px rgba(15,23,42,0.06);
+  --radius:14px;
+  --shadow:0 12px 30px rgba(15,23,42,0.08);
   --danger:#ef4444;
   font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
 }
 *{box-sizing:border-box}
-body{background:linear-gradient(180deg,#f7fbff 0%,var(--bg) 100%);color:var(--text);margin:0;padding:28px}
-.container{max-width:1200px;margin:0 auto}
-.card{background:var(--card);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow)}
-h1{text-align:start;color:var(--accent);margin:0 0 12px;font-size:24px}
-.toolbar{display:flex;gap:12px;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap}
-.search{flex:1;min-width:200px}
+body{background:linear-gradient(180deg, #f7fbff 0%, var(--bg) 100%);color:var(--text);margin:0;padding:28px}
+.container{max-width:1180px;margin:0 auto}
+.header{display:flex;align-items:center;gap:16px;margin-bottom:18px}
+.logo{width:56px;height:56px;border-radius:10px;background:linear-gradient(135deg,#0b6cff,#38bdf8);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700}
+.titleWrap h1{margin:0;font-size:20px;color:var(--accent)}
+.titleWrap p{margin:3px 0 0;color:var(--muted);font-size:13px}
+.card{background:var(--card);border-radius:var(--radius);padding:18px;box-shadow:var(--shadow)}
+.toolbar{display:flex;gap:12px;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap}
+.controls{display:flex;gap:12px;align-items:center;flex:1}
+.search{flex:1;min-width:180px}
 .search input{width:100%;padding:12px;border-radius:10px;border:1px solid #e6e9ef;font-size:14px}
-.btn{padding:9px 14px;border-radius:10px;border:none;cursor:pointer;font-weight:600}
+.btn{padding:9px 14px;border-radius:10px;border:none;cursor:pointer;font-weight:700}
 .btn-add{background:var(--accent);color:#fff}
 .btn-ghost{background:transparent;border:1px solid #e6e9ef}
+.btn-small{padding:6px 10px;border-radius:8px;font-size:13px}
 .table-wrap{overflow:auto;border-radius:10px}
-table{width:100%;border-collapse:collapse;min-width:900px}
+table{width:100%;border-collapse:collapse;min-width:760px}
 thead th{text-align:left;padding:12px 14px;font-size:12px;color:var(--muted);text-transform:uppercase}
-tbody td{padding:12px 14px;border-bottom:1px solid rgba(0,0,0,0.04);font-size:14px;vertical-align:middle}
+tbody td{padding:12px 14px;border-bottom:1px solid rgba(0,0,0,0.04);font-size:14px}
 tbody tr:hover{background:rgba(11,108,255,0.03)}
 .action-btn{display:inline-flex;align-items:center;gap:8px;padding:6px 10px;border-radius:8px;border:none;color:#fff;cursor:pointer;font-size:13px}
-.edit{background:#f59e0b}.del{background:var(--danger)}.perm{background:#06b6d4}.cat{background:#7c3aed}
-.popup{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);align-items:center;justify-content:center;z-index:999}
-.form{background:#fff;padding:20px;border-radius:12px;width:640px;box-shadow:var(--shadow);max-height:90vh;overflow:auto}
+.edit{background:#f59e0b}.del{background:var(--danger)}.perm{background:#06b6d4}
+.viewCat{background:transparent;border:1px solid rgba(11,108,255,0.12);padding:6px 10px;border-radius:8px;color:var(--accent);cursor:pointer}
+.badge{padding:6px 8px;border-radius:8px;font-size:12px;color:#fff;display:inline-block}
+.badge.all{background:#10b981}
+.small{font-size:13px;color:#475569}
+.multiselect-list{height:140px}
+
+/* popup form */
+.popup{display:none;position:fixed;inset:0;background:rgba(10,20,40,0.45);align-items:center;justify-content:center;z-index:999}
+.form{background:#fff;padding:20px;border-radius:12px;width:560px;box-shadow:var(--shadow);max-height:90vh;overflow:auto}
 .form h3{margin:0 0 12px;color:var(--accent)}
 .form .row{margin-bottom:10px}
 .form input, .form textarea, .form select{width:100%;padding:10px;border-radius:8px;border:1px solid #e6e9ef;font-size:14px}
 .form .muted{font-size:13px;color:#6b7280}
 .toast{position:fixed;left:50%;top:20px;transform:translateX(-50%);background:#111;color:#fff;padding:10px 16px;border-radius:10px;display:none;z-index:10000}
 .toast.show{display:block}
-.badge{padding:6px 8px;border-radius:8px;font-size:12px;color:#fff;display:inline-block}
-.badge.all{background:#10b981}
-.small{font-size:13px;color:#475569}
-.multiselect-list{height:140px}
-/* category preview modal */
-.cat-card{background:#fff;padding:18px;border-radius:10px;min-width:320px;box-shadow:var(--shadow)}
 
-/* Responsive: convert table to cards on small screens */
+/* category viewer popup */
+.cat-popup{display:none;position:fixed;right:20px;top:20px;background:#fff;padding:12px;border-radius:10px;box-shadow:0 8px 24px rgba(2,6,23,0.12);z-index:1200}
+.cat-popup h4{margin:0 0 6px;font-size:14px;color:var(--accent)}
+
+/* Responsive: chuyển bảng thành "cards" trên màn hình bé */
 @media (max-width:820px){
-  table{min-width:0;}
-  thead{display:none;}
+  table{min-width:0}
+  thead{display:none}
   tbody td{display:block;padding:12px;border-bottom:1px solid rgba(0,0,0,0.04)}
   tbody tr{margin-bottom:12px;background:#fff;border-radius:10px;box-shadow:var(--shadow);display:block;padding:0}
   tbody tr td{border:none}
-  tbody tr td:before{font-weight:600;display:inline-block;width:120px;color:var(--muted)}
+  tbody tr td:before{font-weight:600;display:inline-block;width:110px;color:var(--muted)}
   tbody tr td:nth-child(1):before{content:"ID"}
   tbody tr td:nth-child(2):before{content:"Tên file"}
   tbody tr td:nth-child(3):before{content:"Slug"}
   tbody tr td:nth-child(4):before{content:"URL"}
   tbody tr td:nth-child(5):before{content:"Quyền xem"}
-  tbody tr td:nth-child(6):before{content:"Hành động"}
+  tbody tr td:nth-child(6):before{content:"Danh mục"}
+  tbody tr td:nth-child(7):before{content:"Hành động"}
 }
 </style>
 </head>
 <body>
 <div class="container">
-  <div class="card">
-    <h1>Admin — Tài liệu ngành</h1>
+  <div class="header">
+    <div class="logo">TL</div>
+    <div class="titleWrap">
+      <h1>Admin — Tài liệu ngành</h1>
+      <p>Quản lý tài liệu & phân quyền — Danh mục chuyển sang chọn sẵn</p>
+    </div>
+  </div>
 
+  <div class="card">
     <div class="toolbar">
-      <div style="display:flex;gap:12px;flex:1;align-items:center">
-        <div class="search"><input id="q" placeholder="Tìm kiếm theo tên file / slug / quyền..." /></div>
-      </div>
-      <div style="display:flex;gap:8px">
-        <button id="btnReload" class="btn btn-ghost">⟳ Tải lại</button>
-        <button id="btnAdd" class="btn btn-add">+ Thêm tài liệu</button>
+      <div class="controls">
+        <div class="search"><input id="q" placeholder="Tìm kiếm theo tên file / slug / URL..." /></div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <button id="btnReload" class="btn btn-ghost btn-small">⟳ Tải lại</button>
+          <button id="btnAdd" class="btn btn-add btn-small">+ Thêm tài liệu</button>
+        </div>
       </div>
     </div>
 
@@ -92,11 +109,12 @@ tbody tr:hover{background:rgba(11,108,255,0.03)}
             <th>Slug</th>
             <th>URL</th>
             <th>Quyền xem</th>
+            <th>Danh mục</th>
             <th>Hành động</th>
           </tr>
         </thead>
         <tbody id="tb">
-          <tr><td colspan="6" style="text-align:center;padding:18px">Chưa tải dữ liệu...</td></tr>
+          <tr><td colspan="7" style="text-align:center;padding:18px">Chưa tải dữ liệu...</td></tr>
         </tbody>
       </table>
     </div>
@@ -110,13 +128,13 @@ tbody tr:hover{background:rgba(11,108,255,0.03)}
 
     <input id="fid" type="hidden" />
 
-    <!-- Danh mục: chọn sẵn từ list (gửi lên API dưới trường `title` để giữ nguyên các route) -->
     <div class="row">
       <label class="small">Danh mục (chọn sẵn)</label>
-      <select id="fcategory_sel">
-        <option value="">— Chọn danh mục —</option>
-        <!-- options sẽ được populate từ dữ liệu server -->
-      </select>
+      <select id="fcategory_select"></select>
+      <div style="display:flex;gap:8px;margin-top:8px">
+        <button id="btnAddCategory" class="btn btn-ghost btn-small">+ Thêm danh mục mới</button>
+        <span class="muted">Danh mục được quản lý; ở bảng sẽ ẩn tên và có nút Xem</span>
+      </div>
     </div>
 
     <div class="row"><input id="fname_inp" placeholder="Tên file (name)" /></div>
@@ -136,7 +154,6 @@ tbody tr:hover{background:rgba(11,108,255,0.03)}
       <label class="small">Chọn user (nhấn Ctrl/Cmd để chọn nhiều)</label>
       <select id="fquyen_select" multiple class="multiselect-list"></select>
 
-      <!-- NEW: nút Bỏ chọn để dễ thao tác -->
       <div style="margin-top:8px; display:flex; gap:8px; align-items:center;">
         <button id="btnClearSelect" type="button" class="btn btn-ghost" style="padding:6px 10px;font-size:13px">Bỏ chọn</button>
         <button id="btnSelectAllVisible" type="button" class="btn btn-ghost" style="padding:6px 10px;font-size:13px">Chọn tất cả</button>
@@ -153,22 +170,13 @@ tbody tr:hover{background:rgba(11,108,255,0.03)}
   </div>
 </div>
 
-<!-- category view popup -->
-<div id="catPopup" class="popup" aria-hidden="true">
-  <div class="cat-card" role="dialog" aria-modal="true">
-    <h3 style="margin:0 0 8px;color:var(--accent)">Danh mục tài liệu</h3>
-    <div id="catContent" class="small muted">—</div>
-    <div style="text-align:right;margin-top:12px">
-      <button id="closeCat" class="btn btn-ghost">Đóng</button>
-    </div>
-  </div>
-</div>
-
 <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+<!-- quick category viewer -->
+<div id="catPopup" class="cat-popup" aria-hidden="true"></div>
 
 <script>
 /* ================= CONFIG ================= */
-/* Thay API nếu deploy Apps Script khác */
 const API = "https://script.google.com/macros/s/AKfycbxrj25sWeIPBbhw7HzhC8CEdol5bW1nV1ZtppCbs3lLCn9CEgl__mWSw6WHbZDQjXM-/exec";
 
 /* LẤY token + role từ localStorage giống UI Users */
@@ -184,14 +192,8 @@ try{
     const payload = parseTokenPayload(token);
     if(payload){ currentRole = payload.role || ""; }
   }
-} catch(e){
-  console.error(e);
-  localStorage.removeItem("loggedInUser");
-  alert('Token không hợp lệ. Vui lòng đăng nhập lại.');
-  window.location.href = '/login.html';
-}
+}catch(e){ console.error(e); localStorage.removeItem("loggedInUser"); alert('Token không hợp lệ. Vui lòng đăng nhập lại.'); window.location.href = '/login.html'; }
 
-/* nếu role không phải admin/editor -> chặn */
 if(!currentRole){ alert('Không xác định role.'); localStorage.removeItem('loggedInUser'); window.location.href='/login.html'; }
 const roleLower = String(currentRole).toLowerCase();
 if(roleLower !== 'admin' && roleLower !== 'editor'){ alert('Bạn không có quyền truy cập trang này'); window.location.href='/login.html'; }
@@ -199,12 +201,11 @@ if(roleLower !== 'admin' && roleLower !== 'editor'){ alert('Bạn không có quy
 /* ========== ELEMENTS ========== */
 const tb = document.getElementById('tb');
 const popup = document.getElementById('popup');
-const catPopup = document.getElementById('catPopup');
 const toast = document.getElementById('toast');
 const btnAdd = document.getElementById('btnAdd');
 const btnReload = document.getElementById('btnReload');
 const fid = document.getElementById('fid');
-const fcategory_sel = document.getElementById('fcategory_sel');
+const fcategory_select = document.getElementById('fcategory_select');
 const fname_inp = document.getElementById('fname_inp');
 const fslug_inp = document.getElementById('fslug_inp');
 const furl_inp = document.getElementById('furl_inp');
@@ -213,13 +214,13 @@ const fquyen_select = document.getElementById('fquyen_select');
 const saveBtn = document.getElementById('saveBtn');
 const cancelBtn = document.getElementById('cancelBtn');
 const qInput = document.getElementById('q');
-const btnClearSelect = document.getElementById('btnClearSelect'); // NEW
-const btnSelectAllVisible = document.getElementById('btnSelectAllVisible'); // NEW
-const catContent = document.getElementById('catContent');
-const closeCat = document.getElementById('closeCat');
+const btnClearSelect = document.getElementById('btnClearSelect');
+const btnSelectAllVisible = document.getElementById('btnSelectAllVisible');
+const btnAddCategory = document.getElementById('btnAddCategory');
+const catPopup = document.getElementById('catPopup');
 
 let allUsers = []; // cache users for multiselect
-let allCategories = []; // cache categories (trước đây là titles)
+let allTitles = []; // cache categories
 
 /* ========== helpers ========== */
 function showToast(msg){ toast.textContent = msg; toast.classList.add('show'); toast.style.display='block'; setTimeout(()=>{ toast.classList.remove('show'); toast.style.display='none'; }, 2400); }
@@ -234,27 +235,14 @@ function parseTokenPayload(t){
     return JSON.parse(json);
   }catch(e){ return null; }
 }
-function parseQuyen(s){
-  if(!s) return [];
-  if(String(s).trim().toLowerCase()==='all') return ['all'];
-  return String(s).split(',').map(x=>x.trim()).filter(x=>x);
-}
-function resolveQuyenText(q){
-  if(!q) return '-';
-  if(String(q).trim().toLowerCase()==='all') return '<span class="badge all">all</span>';
-  const arr = parseQuyen(q);
-  const names = arr.map(id=>{ const u = allUsers.find(x=>String(x.id)===String(id)); return u? (u.username || u.email) : id; });
-  if(names.length===0) return '-';
-  if(names.length>3) return `${names.length} users`;
-  return escapeHtml(names.join(', '));
-}
+function parseQuyen(s){ if(!s) return []; if(String(s).trim().toLowerCase()==='all') return ['all']; return String(s).split(',').map(x=>x.trim()).filter(x=>x); }
+function resolveQuyenText(q){ if(!q) return '-'; if(String(q).trim().toLowerCase()==='all') return '<span class="badge all">all</span>'; const arr = parseQuyen(q); const names = arr.map(id=>{ const u = allUsers.find(x=>String(x.id)===String(id)); return u? (u.username || u.email) : id; }); if(names.length===0) return '-'; if(names.length>3) return `${names.length} users`; return escapeHtml(names.join(', ')); }
 
-/* populate category select from allCategories */
+/* populate category select */
 function populateCategorySelect(){
-  // clear existing options (keep placeholder)
-  const selected = fcategory_sel.value;
-  fcategory_sel.innerHTML = '<option value="">— Chọn danh mục —</option>' + allCategories.map(t => `<option value="${escapeHtml(t)}">${escapeHtml(t)}</option>`).join('');
-  if(selected) fcategory_sel.value = selected;
+  fcategory_select.innerHTML = '';
+  const noneOpt = document.createElement('option'); noneOpt.value=''; noneOpt.textContent='-- Chọn danh mục --'; fcategory_select.appendChild(noneOpt);
+  allTitles.forEach(t=>{ const opt = document.createElement('option'); opt.value = t; opt.textContent = t; fcategory_select.appendChild(opt); });
 }
 
 /* ========== load users for multiselect (admin/editor both may need) ========== */
@@ -274,58 +262,44 @@ async function loadUsers(){
     }
     allUsers = users;
     populateUserOptions();
-  }catch(e){
-    console.error('loadUsers err', e);
-    allUsers = [];
-    populateUserOptions();
-  }
+  }catch(e){ console.error('loadUsers err', e); allUsers = []; populateUserOptions(); }
 }
-function populateUserOptions(){
-  fquyen_select.innerHTML = '';
-  allUsers.forEach(u=>{
-    const opt = document.createElement('option');
-    opt.value = u.id || '';
-    opt.textContent = (u.username || u.email || u.id);
-    fquyen_select.appendChild(opt);
-  });
-}
+function populateUserOptions(){ fquyen_select.innerHTML = ''; allUsers.forEach(u=>{ const opt = document.createElement('option'); opt.value = u.id || ''; opt.textContent = (u.username || u.email || u.id); fquyen_select.appendChild(opt); }); }
 
 /* ========== load documents (tailieu-list) ========== */
 async function loadDocs(){
-  tb.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:18px">Đang tải...</td></tr>';
+  tb.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:18px">Đang tải...</td></tr>';
   try{
     const body = new URLSearchParams({ route:'tailieu-list', token });
     const res = await fetch(API, { method:'POST', body });
     const json = await res.json();
     if(!json || json.status !== 'success'){
-      tb.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:18px">Lỗi khi lấy dữ liệu</td></tr>';
+      tb.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:18px">Lỗi khi lấy dữ liệu</td></tr>';
       showToast(json && json.message ? json.message : 'Lỗi server');
       return;
     }
     const items = json.data || [];
 
-    // build category suggestions (unique, non-empty) từ trường title (để giữ tương thích API)
-    allCategories = Array.from(new Set(items.map(it => (it.title||'').trim()).filter(Boolean)));
+    // build category suggestions (unique, non-empty)
+    allTitles = Array.from(new Set(items.map(it => (it.title||'').trim()).filter(Boolean)));
     populateCategorySelect();
 
-    if(items.length === 0){
-      tb.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:18px">Không có dữ liệu</td></tr>';
-      return;
-    }
-    // render rows
+    if(items.length === 0){ tb.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:18px">Không có dữ liệu</td></tr>'; return; }
+
     tb.innerHTML = items.map(it=>{
       const qText = resolveQuyenText(it.quyen || '');
       const urlCell = it.url ? `<a href="${escapeHtml(it.url)}" target="_blank" rel="noopener">Link</a>` : '';
       const dataJson = escapeHtml(JSON.stringify(it));
       const cat = escapeHtml(it.title || '');
+      const catBtn = cat ? `<button class="viewCat" data-cat='${escapeHtml(cat)}' title="Xem danh mục">Xem</button>` : '<span class="small">-</span>';
       return `<tr data-id="${escapeHtml(it.id||'')}">
         <td style="max-width:120px;word-break:break-word">${escapeHtml(it.id||'')}</td>
         <td>${escapeHtml(it.name||'')}</td>
         <td>${escapeHtml(it.slug||'')}</td>
         <td>${urlCell}</td>
         <td title="${escapeHtml(it.quyen||'')}" style="white-space:nowrap">${qText}</td>
+        <td style="white-space:nowrap">${catBtn}</td>
         <td>
-          <button class="action-btn cat" data-cat="${cat}" data-id="${escapeHtml(it.id||'')}">📂 Danh mục</button>
           <button class="action-btn edit" data-id="${escapeHtml(it.id||'')}" data-json='${dataJson}'>✏ Sửa</button>
           <button class="action-btn perm" data-id="${escapeHtml(it.id||'')}" data-json='${dataJson}'>⚙ Quyền</button>
           ${roleLower === 'admin' ? `<button class="action-btn del" data-id="${escapeHtml(it.id||'')}">🗑 Xóa</button>` : ''}
@@ -333,44 +307,16 @@ async function loadDocs(){
       </tr>`;
     }).join('');
     attachDocListeners();
-  }catch(e){
-    console.error('loadDocs err', e);
-    tb.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:18px">Lỗi tải dữ liệu</td></tr>';
-    showToast('Lỗi tải dữ liệu');
-  }
+  }catch(e){ console.error('loadDocs err', e); tb.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:18px">Lỗi tải dữ liệu</td></tr>'; showToast('Lỗi tải dữ liệu'); }
 }
 
 /* ========== attach buttons ========== */
 function attachDocListeners(){
-  document.querySelectorAll('.edit').forEach(b=>{
-    b.onclick = ()=> {
-      let obj = {};
-      try{ obj = JSON.parse(b.getAttribute('data-json')); }catch(e){ obj = { id: b.dataset.id }; }
-      openEditForm(obj);
-    };
-  });
-  document.querySelectorAll('.perm').forEach(b=>{
-    b.onclick = ()=> {
-      let obj = {};
-      try{ obj = JSON.parse(b.getAttribute('data-json')); }catch(e){ obj = { id: b.dataset.id }; }
-      openPermForm(obj);
-    };
-  });
-  document.querySelectorAll('.cat').forEach(b=>{
-    b.onclick = ()=> {
-      const cat = b.getAttribute('data-cat') || '';
-      catContent.textContent = cat || 'Không có danh mục';
-      catPopup.style.display = 'flex';
-      catPopup.setAttribute('aria-hidden','false');
-    };
-  });
+  document.querySelectorAll('.edit').forEach(b=>{ b.onclick = ()=> { let obj = {}; try{ obj = JSON.parse(b.getAttribute('data-json')); }catch(e){ obj = { id: b.dataset.id }; } openEditForm(obj); }; });
+  document.querySelectorAll('.perm').forEach(b=>{ b.onclick = ()=> { let obj = {}; try{ obj = JSON.parse(b.getAttribute('data-json')); }catch(e){ obj = { id: b.dataset.id }; } openPermForm(obj); }; });
+  document.querySelectorAll('.viewCat').forEach(b=>{ b.onclick = ()=> { const cat = b.getAttribute('data-cat') || ''; showCategoryPopup(cat); }; });
   if(roleLower === 'admin'){
-    document.querySelectorAll('.del').forEach(b=>{
-      b.onclick = ()=> {
-        if(!confirm('Bạn chắc chắn muốn xóa?')) return;
-        deleteDoc(b.dataset.id);
-      };
-    });
+    document.querySelectorAll('.del').forEach(b=>{ b.onclick = ()=> { if(!confirm('Bạn chắc chắn muốn xóa?')) return; deleteDoc(b.dataset.id); }; });
   }
 }
 
@@ -379,35 +325,25 @@ btnAdd.onclick = ()=> openEditForm();
 function openEditForm(item = {}){
   document.getElementById('ftitle').textContent = item && item.id ? 'Sửa tài liệu' : 'Thêm tài liệu';
   fid.value = item.id || '';
-  // lưu danh mục vào trường title để giữ tương thích với API cũ
-  fcategory_sel.value = item.title || '';
+
+  // set category select (if category not exist, add it)
+  const cat = item.title || '';
+  if(cat && !allTitles.includes(cat)){ allTitles.push(cat); populateCategorySelect(); }
+  fcategory_select.value = cat || '';
+
   fname_inp.value = item.name || '';
   fslug_inp.value = item.slug || 'TaiLieuNganh';
   furl_inp.value = item.url || '';
   // permission controls
   fquyen_all.checked = false;
   Array.from(fquyen_select.options).forEach(o=> o.selected = false);
-  if(item && item.quyen){
-    const q = String(item.quyen).trim();
-    if(q.toLowerCase()==='all') fquyen_all.checked = true;
-    else {
-      const arr = q.split(',').map(x=>x.trim()).filter(x=>x);
-      arr.forEach(id=>{
-        const opt = fquyen_select.querySelector(`option[value="${id}"]`);
-        if(opt) opt.selected = true;
-      });
-    }
-  }
+  if(item && item.quyen){ const q = String(item.quyen).trim(); if(q.toLowerCase()==='all') fquyen_all.checked = true; else { const arr = q.split(',').map(x=>x.trim()).filter(x=>x); arr.forEach(id=>{ const opt = fquyen_select.querySelector(`option[value="${id}"]`); if(opt) opt.selected = true; }); } }
   popup.style.display = 'flex';
   popup.setAttribute('aria-hidden','false');
 }
-function openPermForm(item = {}){
-  openEditForm(item);
-  fquyen_select.focus();
-}
+function openPermForm(item = {}){ openEditForm(item); fquyen_select.focus(); }
 
 cancelBtn.onclick = ()=> { popup.style.display='none'; popup.setAttribute('aria-hidden','true'); };
-closeCat.onclick = ()=> { catPopup.style.display='none'; catPopup.setAttribute('aria-hidden','true'); };
 
 /* ========== save (add/update) ========== */
 saveBtn.onclick = async ()=>{
@@ -416,24 +352,22 @@ saveBtn.onclick = async ()=>{
   // build quyen
   let quyen = '';
   if(fquyen_all.checked) quyen = 'all';
-  else {
-    const sel = Array.from(fquyen_select.selectedOptions).map(o=>o.value).filter(v=>v);
-    quyen = sel.join(',');
-  }
+  else { const sel = Array.from(fquyen_select.selectedOptions).map(o=>o.value).filter(v=>v); quyen = sel.join(','); }
+
+  const category = fcategory_select.value || '';
 
   const payload = {
     token,
     id,
-    // gửi trường title như trước nhưng bây giờ nó là danh mục
-    title: fcategory_sel.value.trim(),
+    title: category, // IMPORTANT: gửi tên danh mục trong trường title để backend không thay đổi
     name: fname_inp.value.trim(),
     slug: fslug_inp.value.trim() || 'TaiLieuNganh',
     url: furl_inp.value.trim(),
     quyen
   };
 
-  // basic validation
   if(!payload.title){ showToast('Vui lòng chọn danh mục'); return; }
+  if(!payload.name){ showToast('Tên file không được để trống'); return; }
 
   try{
     const res = await fetch(API + '?route=' + route, { method:'POST', body: new URLSearchParams(payload) });
@@ -441,15 +375,9 @@ saveBtn.onclick = async ()=>{
     if(json && (json.status==='success' || json.http_status===201 || json.id)){
       showToast(json.message || 'Lưu thành công');
       popup.style.display = 'none';
-      // update danh sách ngay
       await loadDocs();
-    } else {
-      showToast(json && json.message ? json.message : 'Lỗi lưu');
-    }
-  }catch(e){
-    console.error('save err', e);
-    showToast('Lỗi khi lưu dữ liệu');
-  }
+    } else { showToast(json && json.message ? json.message : 'Lỗi lưu'); }
+  }catch(e){ console.error('save err', e); showToast('Lỗi khi lưu dữ liệu'); }
 };
 
 /* ========== delete doc (admin only) ========== */
@@ -459,10 +387,7 @@ async function deleteDoc(id){
     const json = await res.json();
     if(json && json.status === 'success'){ showToast(json.message || 'Đã xóa'); await loadDocs(); }
     else showToast(json && json.message ? json.message : 'Lỗi xóa');
-  }catch(e){
-    console.error('deleteDoc err', e);
-    showToast('Lỗi xóa');
-  }
+  }catch(e){ console.error('deleteDoc err', e); showToast('Lỗi xóa'); }
 }
 
 /* ========== reload / search / shortcuts ========== */
@@ -470,43 +395,41 @@ btnReload.onclick = async ()=> { await loadUsers(); await loadDocs(); };
 
 qInput.oninput = ()=>{
   const q = qInput.value.trim().toLowerCase();
-  document.querySelectorAll('#tb tr').forEach(tr=>{
-    tr.style.display = (tr.innerText.toLowerCase().includes(q)) ? '' : 'none';
-  });
+  document.querySelectorAll('#tb tr').forEach(tr=>{ tr.style.display = (tr.innerText.toLowerCase().includes(q)) ? '' : 'none'; });
 };
 
 // Ctrl+Shift+U: clear multiselect
-document.addEventListener('keydown', (e)=>{
-  if(e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'u'){
-    e.preventDefault();
-    Array.from(fquyen_select.options).forEach(o=> o.selected = false);
-    fquyen_all.checked = false;
-    showToast('Đã bỏ chọn tất cả user');
-  }
+document.addEventListener('keydown', (e)=>{ if(e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'u'){ e.preventDefault(); Array.from(fquyen_select.options).forEach(o=> o.selected = false); fquyen_all.checked = false; showToast('Đã bỏ chọn tất cả user'); } });
+
+/* ========== Clear / Select-all buttons handlers ========== */
+btnClearSelect && (btnClearSelect.onclick = (e) => { e.preventDefault(); Array.from(fquyen_select.options).forEach(o=> o.selected = false); fquyen_all.checked = false; fquyen_select.focus(); showToast('Đã bỏ chọn tất cả user'); });
+
+btnSelectAllVisible && (btnSelectAllVisible.onclick = (e) => { e.preventDefault(); Array.from(fquyen_select.options).forEach(o=> o.selected = true); fquyen_select.focus(); showToast('Đã chọn tất cả user hiển thị'); });
+
+/* ========== add new category quickly ========== */
+btnAddCategory && (btnAddCategory.onclick = (e) => {
+  e.preventDefault();
+  const v = prompt('Nhập tên danh mục mới:');
+  if(!v) return; const name = v.trim(); if(!name) return;
+  if(!allTitles.includes(name)){ allTitles.push(name); }
+  populateCategorySelect();
+  fcategory_select.value = name;
+  showToast('Đã thêm danh mục: ' + name);
 });
 
-/* ========== NEW: Clear / Select-all buttons handlers ========== */
-btnClearSelect && (btnClearSelect.onclick = (e) => {
-  e.preventDefault();
-  Array.from(fquyen_select.options).forEach(o=> o.selected = false);
-  fquyen_all.checked = false;
-  fquyen_select.focus();
-  showToast('Đã bỏ chọn tất cả user');
-});
-
-btnSelectAllVisible && (btnSelectAllVisible.onclick = (e) => {
-  e.preventDefault();
-  // chọn tất cả option hiện có trong select (không ảnh hưởng đến checkbox "all")
-  Array.from(fquyen_select.options).forEach(o=> o.selected = true);
-  fquyen_select.focus();
-  showToast('Đã chọn tất cả user hiển thị');
-});
+/* ========== category viewer popup ========== */
+let catHideTimer = null;
+function showCategoryPopup(cat){
+  if(!cat){ showToast('Không có danh mục'); return; }
+  catPopup.innerHTML = `<h4>Danh mục</h4><div style="font-weight:600">${escapeHtml(cat)}</div>`;
+  catPopup.style.display = 'block';
+  catPopup.setAttribute('aria-hidden','false');
+  clearTimeout(catHideTimer);
+  catHideTimer = setTimeout(()=>{ catPopup.style.display='none'; catPopup.setAttribute('aria-hidden','true'); }, 4500);
+}
 
 /* ========== init ========== */
-(async function init(){
-  await loadUsers();
-  await loadDocs();
-})();
+(async function init(){ await loadUsers(); await loadDocs(); })();
 </script>
 </body>
 </html>
