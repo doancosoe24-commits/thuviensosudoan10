@@ -261,10 +261,10 @@ function renderList(data){
     const item=e.target.closest(".item");
     if(item){
       const slug=toSlug(item.dataset.title);
-      if(slug==="LICHSUSUDOAN"){
-        window.location.href="lichsudoandakto.html";
-        return;
-      }
+      // if(slug==="LICHSUSUDOAN"){
+      //   window.location.href="lichsudoandakto.html";
+      //   return;
+      // }
       window.location.href=`detail_truyenthong.html?slug=${slug}`;
     }
   };
