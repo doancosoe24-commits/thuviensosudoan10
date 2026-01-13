@@ -2,7 +2,7 @@
 <html lang="vi">
 <head>
   <meta charset="UTF-8">
-    <link rel="shortcut icon" href="./img/logo.png" type="image/x-icon">
+  <link rel="shortcut icon" href="./img/logo.png" type="image/x-icon">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Thư Viện Pháp Luật Số - Tài Liệu Công Tác Quân Sự</title>
 
@@ -40,7 +40,6 @@
       padding:28px 0 40px;
     }
 
-    /* ---------- BACK ---------- */
     .back-link{
       display:inline-flex;
       align-items:center;
@@ -60,7 +59,6 @@
       color:#fff;
     }
 
-    /* ---------- TITLE ---------- */
     #pageTitle{
       text-align:center;
       color:var(--primary);
@@ -71,14 +69,11 @@
       text-transform:uppercase;
     }
 
-    /* ---------- LIST ---------- */
     #list{
       display:grid;
       grid-template-columns:repeat(auto-fill,minmax(240px,1fr));
       gap:22px;
     }
-
-    .item_list{ width:100%; }
 
     .item{
       background:linear-gradient(135deg,var(--primary),#003a8c);
@@ -101,10 +96,8 @@
       margin:0;
       font-size:17px;
       font-weight:700;
-      line-height:1.4;
     }
 
-    /* ---------- LOADING (GIỐNG CODE MẪU) ---------- */
     #loadingBox{
       display:flex;
       flex-direction:column;
@@ -126,14 +119,9 @@
       margin-bottom:16px;
     }
 
-    @keyframes spin{
-      to{ transform:rotate(360deg); }
-    }
+    @keyframes spin{ to{ transform:rotate(360deg); } }
 
-    @media(max-width:1024px){
-      body{ width:90%; }
-    }
-
+    @media(max-width:1024px){ body{ width:90%; } }
     @media(max-width:768px){
       body{ width:100%; }
       #list{ grid-template-columns:1fr; }
@@ -142,13 +130,10 @@
   </style>
 </head>
 <body>
-
 <div id="header"></div>
-
 <main>
   <span class="back-link" onclick="history.back()">← Quay lại</span>
-
-  <h2 id="pageTitle"></h2>
+  <h2 id="pageTitle">Tài liệu công tác quân sự</h2>
 
   <div id="loadingBox">
     <div class="loader"></div>
@@ -157,29 +142,22 @@
 
   <div id="list" style="display:none;"></div>
 </main>
-
 <div id="footer"></div>
-
 <script src="main.js"></script>
 <script>
 /* ================= CONFIG ================= */
-const webAppUrl = "https://script.google.com/macros/s/AKfycbxDmG7NRLvZkSZNwf_6MofPyKxiIgbQS1smgIXoV1ZTBhzusLHLqQ8eTlRcozs_BMSk/exec";
-
-
-/* ================= STATE ================= */
-let ALL_CATEGORIES = [];
+const API_URLL =
+"https://script.google.com/macros/s/AKfycbxDmG7NRLvZkSZNwf_6MofPyKxiIgbQS1smgIXoV1ZTBhzusLHLqQ8eTlRcozs_BMSk/exec?route=tailieuctqs-list";
 
 /* ================= UTILS ================= */
 function escapeHtml(str){
-  if(!str) return "";
-  return String(str)
+  return String(str || "")
     .replace(/&/g,"&amp;")
     .replace(/</g,"&lt;")
     .replace(/>/g,"&gt;")
     .replace(/"/g,"&quot;")
     .replace(/'/g,"&#39;");
 }
-
   function toSlug(text){
       text = String(text || "");
       text = text.replace(/Đ/g,"D").replace(/đ/g,"d");
@@ -191,88 +169,61 @@ function escapeHtml(str){
         .toLowerCase();
     }
 
-
-function getQueryParam(name){
-  return new URLSearchParams(window.location.search).get(name);
-}
-
 /* ================= API ================= */
 async function fetchData(){
-  console.log("👉 Bắt đầu gọi API:", webAppUrl);
+  const res = await fetch(API_URLL,{ method:"POST" });
+  const text = await res.text();           // 🔑 QUAN TRỌNG
+  console.log("RAW RESPONSE:", text);
 
-  const res = await fetch(webAppUrl);
-
-
-  const json = await res.json();
-  console.log("👉 JSON trả về từ API:", json.data);
-
-  return {
-    docs: json.data.TaiLieuCongTacQuanSu || [],
-    cats: json.data.Category || []
-  };
+  const json = JSON.parse(text);            // 🔑 TỰ PARSE
+  if(json.status !== "success") return [];
+  return json.data || [];
 }
-
 
 /* ================= RENDER ================= */
 function renderList(data){
   const list = document.getElementById("list");
   const loading = document.getElementById("loadingBox");
 
-  const map = new Map();
-  data.forEach(i=>{
-    if(i.title){
-      const k = i.title.trim().toLowerCase();
-      if(!map.has(k)) map.set(k, i);
-    }
-  });
+  if(!data.length){
+    loading.innerText = "Không có dữ liệu";
+    return;
+  }
 
   list.innerHTML = "";
-  map.forEach(i=>{
-    const div = document.createElement("div");
-    div.className = "item_list";
-    div.innerHTML = `
-      <div class="item" data-title="${escapeHtml(i.title)}">
-        <p>${escapeHtml(i.title)}</p>
-      </div>
-    `;
-    list.appendChild(div);
-  });
+
+data.forEach(i => {
+  const div = document.createElement("div");
+  div.className = "item";
+  div.dataset.title = i.title;   // ⭐ QUAN TRỌNG
+  div.innerHTML = `<p>${escapeHtml(i.title)}</p>`;
+  list.appendChild(div);
+});
+
 
   loading.style.display = "none";
   list.style.display = "grid";
 
   list.onclick = e=>{
-    const item = e.target.closest(".item");
-    if(item){
-      const slug = toSlug(item.dataset.title);
-      window.location.href = `detail_congtacquansu.html?slug=${slug}`;
+    const it = e.target.closest(".item");
+    if(it){
+      const slug = toSlug(it.dataset.title);
+      location.href = "detail_congtacquansu.html?slug=" + slug;
     }
   };
 }
 
 /* ================= INIT ================= */
-async function loadPage(){
+(async function(){
   try{
     const data = await fetchData();
-    ALL_CATEGORIES = data.cats;
-    renderList(data.docs);
-    updateTitle();
+    renderList(data);
   }catch(err){
-    document.getElementById("loadingBox").innerText = "Không thể tải dữ liệu";
+    document.getElementById("loadingBox").innerText = "Lỗi tải dữ liệu";
     console.error(err);
   }
-}
-
-function updateTitle(){
-  const slug = getQueryParam("slug");
-  if(!slug) return;
-  const cat = ALL_CATEGORIES.find(c=>c.slug === slug);
-  document.getElementById("pageTitle").innerText = cat ? cat.title : slug;
-}
-
-loadPage();
+})();
 </script>
 
 </body>
 </html>
-
