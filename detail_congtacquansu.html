@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="shortcut icon" href="./img/logo.png" type="image/x-icon">
+<title>Chi tiết văn bản</title>
+
+<style>
+:root{
+  --primary:#004aad;
+  --gold:#ccae6e;
+  --bg:#f6f8fb;
+  --text:#1f2937;
+  --radius:16px;
+  --shadow:0 10px 25px rgba(0,0,0,0.08);
+}
+
+html, body { height:100%; margin:0; }
+
+body{
+  display:flex;
+  flex-direction:column;
+  width:70%;
+  margin:0 auto;
+  font-family: Arial, sans-serif;
+  color:#333;
+  background:#f7f9fb;
+}
+
+main{ flex:1; box-sizing:border-box; }
+
+h2{
+  text-align:center;
+  color:#004aad;
+  font-weight:700;
+}
+
+/* ---------- BACK (ĐỒNG BỘ CODE 1) ---------- */
+.back-link{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  padding:8px 14px;
+  border-radius:999px;
+  background:#fff;
+  box-shadow:var(--shadow);
+  color:var(--primary);
+  font-weight:600;
+  cursor:pointer;
+  transition:.25s;
+  margin:10px 0 16px;
+}
+.back-link:hover{
+  background:var(--primary);
+  color:#fff;
+}
+
+/* ---------- LOADING (ĐỒNG BỘ CODE 1) ---------- */
+#loadingBox{
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+  padding:60px 0;
+  color:var(--primary);
+  font-size:16px;
+  font-weight:600;
+}
+
+.loader{
+  width:54px;
+  height:54px;
+  border:4px solid rgba(0,0,0,0.1);
+  border-top-color:var(--gold);
+  border-radius:50%;
+  animation:spin .7s linear infinite;
+  margin-bottom:16px;
+}
+
+@keyframes spin{
+  to{ transform:rotate(360deg); }
+}
+
+/* ---------- TAB MENU (GIỮ NGUYÊN) ---------- */
+.tabs-container{
+  position:relative;
+  display:flex;
+  gap:10px;
+  margin-bottom:20px;
+  border-bottom:2px solid #d0d6e0;
+  padding-bottom:8px;
+}
+
+.tab-btn{
+  font-size:14px;
+  font-weight:600;
+  background:#004aad;
+  cursor:pointer;
+  padding:10px 10px;
+  border-radius:5px;
+  color:white;
+  transition:0.25s;
+}
+.tab-btn.active{ background:#004aad; }
+
+.tab-underline{
+  position:absolute;
+  bottom:-2px;
+  height:4px;
+  background:#004aad;
+  width:100%;
+  border-radius:10px;
+  transition:0.3s;
+}
+
+/* ---------- TAB CONTENT (GIỮ NGUYÊN) ---------- */
+.tab-detail{
+  padding:20px;
+  background:#fff9e8;
+  border-radius:14px;
+  box-shadow:0 4px 12px rgba(0,0,0,0.08);
+  min-height:500px;
+  position:relative;
+}
+
+.watermark{
+  position:absolute;
+  top:40%;
+  left:50%;
+  font-size:40px;
+  color:rgba(200,0,0,0.15);
+  transform:translate(-50%,-50%) rotate(-15deg);
+  pointer-events:none;
+  user-select:none;
+}
+
+@media(max-width:768px){
+  body{ width:100%; }
+  h2{ text-align:start; padding:0 10px; }
+}
+</style>
+</head>
+
+<body>
+
+<main>
+  <div id="header"></div>
+
+  <span class="back-link" onclick="history.back()">← Quay lại</span>
+
+  <h2 id="docTitle"></h2>
+
+  <!-- LOADING -->
+  <div id="loadingBox">
+    <div class="loader"></div>
+    Đang tải dữ liệu...
+  </div>
+
+  <div class="tabs-container" style="display:none;">
+    <div class="tab-btn active" data-tab="source">Văn bản PDF</div>
+    <div class="tab-underline"></div>
+  </div>
+
+  <div class="tab-detail" id="tabContent" style="display:none;"></div>
+</main>
+
+<div id="footer"></div>
+
+<script src="main.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.10.100/pdf.min.js"></script>
+<script>
+const webAppUrl = "https://script.google.com/macros/s/AKfycbxPWbbwdGjo3VrbBfzlzCcpGfqCQ7aNHLCsjkzTKdp7h7flB34JZKbsDGZ11l8si0PpHA/exec?route=tailieuctqs-list";
+const slugFromURL = new URLSearchParams(window.location.search).get("slug");
+
+const tabContent = document.getElementById("tabContent");
+const docTitle = document.getElementById("docTitle");
+const tabsContainer = document.querySelector(".tabs-container");
+const loadingBox = document.getElementById("loadingBox");
+const tabs = document.querySelectorAll(".tab-btn");
+const underline = document.querySelector(".tab-underline");
+
+let currentData = null;
+
+/* ---------- HELPERS ---------- */
+  function toSlug(text){
+      text = String(text || "");
+      text = text.replace(/Đ/g,"D").replace(/đ/g,"d");
+      return text.normalize("NFD")
+        .replace(/[\u0300-\u036f]/g,"")
+        .replace(/[^a-zA-Z0-9 ]/g,"")
+        .trim()
+        .replace(/\s+/g,"-")
+        .toLowerCase();
+    }
+
+function getDriveID(link){
+  if(!link) return "";
+  const match = link.match(/\/d\/([a-zA-Z0-9_-]+)/);
+  return match ? match[1] : link;
+}
+
+function updateUnderline(activeTab){
+  if(!activeTab) return;
+  underline.style.width = activeTab.offsetWidth + "px";
+  underline.style.transform = `translateX(${activeTab.offsetLeft}px)`;
+}
+
+/* ---------- SHOW TAB ---------- */
+function showTab(data){
+  if(!data) return;
+
+  loadingBox.style.display = "none";
+  tabsContainer.style.display = "flex";
+  tabContent.style.display = "block";
+
+  if(!data.url || data.url.trim() === ""){
+    tabContent.innerHTML = `
+      <div style="height:700px;display:flex;align-items:center;justify-content:center;font-size:18px;color:#ff3131;">
+        Dữ liệu PDF chưa có
+      </div>`;
+  } else {
+    const pdfID = getDriveID(data.url);
+    tabContent.innerHTML = `
+      <div style="position:relative;width:100%;height:700px;border-radius:10px;overflow:hidden;">
+        <iframe src="https://drive.google.com/file/d/${pdfID}/preview" style="width:100%;height:100%;border:none;"></iframe>
+        <div class="watermark">Thư viện số Sư đoàn 10</div>
+      </div>`;
+  }
+
+  docTitle.innerText = data.title || "Không có tên tài liệu";
+  updateUnderline(document.querySelector(".tab-btn.active"));
+}
+
+/* ---------- TAB CLICK ---------- */
+tabs.forEach(tab=>{
+  tab.addEventListener("click",()=>{
+    document.querySelector(".tab-btn.active")?.classList.remove("active");
+    tab.classList.add("active");
+    showTab(currentData);
+  });
+});
+
+/* ---------- LOAD DATA ---------- */
+if(slugFromURL){
+  fetch(`${webAppUrl}?ref=${encodeURIComponent(window.location.origin)}`)
+    .then(res=>res.json())
+    .then(res=>{
+      const rawList = res.data.TaiLieuCongTacQuanSu || [];
+      console.log("🔍 Kết quả tìm kiếm cho slug:", rawList);
+   const matched = rawList.find(row =>
+  toSlug(row.title||row.name) === slugFromURL
+);
+
+      if(matched){
+        currentData = matched;
+        showTab(currentData);
+      }else{
+        loadingBox.style.display="none";
+        docTitle.innerText="Không tìm thấy văn bản";
+        tabContent.style.display="block";
+        tabContent.innerHTML="<p>Không tìm thấy dữ liệu.</p>";
+      }
+    })
+    .catch(err=>{
+      loadingBox.style.display="none";
+      docTitle.innerText="Lỗi tải dữ liệu";
+      tabContent.style.display="block";
+      tabContent.innerHTML="<p>Không thể tải dữ liệu.</p>";
+    });
+}else{
+  loadingBox.style.display="none";
+  docTitle.innerText="Không xác định văn bản";
+  tabContent.style.display="block";
+  tabContent.innerHTML="<p>Không có slug.</p>";
+}
+</script>
+
+</body>
+</html>

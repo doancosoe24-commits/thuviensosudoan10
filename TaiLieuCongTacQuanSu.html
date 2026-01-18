@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <link rel="shortcut icon" href="./img/logo.png" type="image/x-icon">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Thư Viện Pháp Luật Số - Tài Liệu Công Tác Quân Sự</title>
+
+  <style>
+    :root{
+      --primary:#004aad;
+      --gold:#ccae6e;
+      --bg:#f6f8fb;
+      --card:#ffffff;
+      --text:#1f2937;
+      --muted:#6b7280;
+      --radius:16px;
+      --shadow:0 10px 25px rgba(0,0,0,0.08);
+    }
+
+    *{ box-sizing:border-box; }
+
+    html, body{
+      margin:0;
+      height:100%;
+      font-family:"Segoe UI", Arial, sans-serif;
+      background:var(--bg);
+      color:var(--text);
+    }
+
+    body{
+      display:flex;
+      flex-direction:column;
+      width:75%;
+      margin:0 auto;
+    }
+
+    main{
+      flex:1;
+      padding:28px 0 40px;
+    }
+
+    .back-link{
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      padding:8px 14px;
+      border-radius:999px;
+      background:#fff;
+      box-shadow:var(--shadow);
+      color:var(--primary);
+      font-weight:600;
+      cursor:pointer;
+      transition:.25s;
+      margin-bottom:20px;
+    }
+    .back-link:hover{
+      background:var(--primary);
+      color:#fff;
+    }
+
+    #pageTitle{
+      text-align:center;
+      color:var(--primary);
+      font-size:24px;
+      font-weight:800;
+      letter-spacing:1px;
+      margin:10px 0 30px;
+      text-transform:uppercase;
+    }
+
+    #list{
+      display:grid;
+      grid-template-columns:repeat(auto-fill,minmax(240px,1fr));
+      gap:22px;
+    }
+
+    .item{
+      background:linear-gradient(135deg,var(--primary),#003a8c);
+      border-radius:var(--radius);
+      padding:26px 18px;
+      color:var(--gold);
+      text-align:center;
+      cursor:pointer;
+      box-shadow:var(--shadow);
+      transition:.3s;
+    }
+
+    .item:hover{
+      transform:translateY(-6px) scale(1.02);
+      box-shadow:0 18px 35px rgba(0,0,0,0.18);
+      color:#fff;
+    }
+
+    .item p{
+      margin:0;
+      font-size:17px;
+      font-weight:700;
+    }
+
+    #loadingBox{
+      display:flex;
+      flex-direction:column;
+      justify-content:center;
+      align-items:center;
+      padding:60px 0;
+      color:var(--primary);
+      font-size:16px;
+      font-weight:600;
+    }
+
+    .loader{
+      width:54px;
+      height:54px;
+      border:4px solid rgba(0,0,0,0.1);
+      border-top-color:var(--gold);
+      border-radius:50%;
+      animation:spin .7s linear infinite;
+      margin-bottom:16px;
+    }
+
+    @keyframes spin{ to{ transform:rotate(360deg); } }
+
+    @media(max-width:1024px){ body{ width:90%; } }
+    @media(max-width:768px){
+      body{ width:100%; }
+      #list{ grid-template-columns:1fr; }
+      #pageTitle{ font-size:20px; }
+    }
+  </style>
+</head>
+<body>
+<div id="header"></div>
+<main>
+  <span class="back-link" onclick="history.back()">← Quay lại</span>
+  <h2 id="pageTitle">Tài liệu công tác quân sự</h2>
+
+  <div id="loadingBox">
+    <div class="loader"></div>
+    Đang tải dữ liệu...
+  </div>
+
+  <div id="list" style="display:none;"></div>
+</main>
+<div id="footer"></div>
+<script src="main.js"></script>
+<script>
+/* ================= CONFIG ================= */
+const API_URLL =
+"https://script.google.com/macros/s/AKfycbxPWbbwdGjo3VrbBfzlzCcpGfqCQ7aNHLCsjkzTKdp7h7flB34JZKbsDGZ11l8si0PpHA/exec?route=tailieuctqs-list";
+
+/* ================= UTILS ================= */
+function escapeHtml(str){
+  return String(str || "")
+    .replace(/&/g,"&amp;")
+    .replace(/</g,"&lt;")
+    .replace(/>/g,"&gt;")
+    .replace(/"/g,"&quot;")
+    .replace(/'/g,"&#39;");
+}
+  function toSlug(text){
+      text = String(text || "");
+      text = text.replace(/Đ/g,"D").replace(/đ/g,"d");
+      return text.normalize("NFD")
+        .replace(/[\u0300-\u036f]/g,"")
+        .replace(/[^a-zA-Z0-9 ]/g,"")
+        .trim()
+        .replace(/\s+/g,"-")
+        .toLowerCase();
+    }
+
+/* ================= API ================= */
+async function fetchData(){
+  const res = await fetch(API_URLL,{ method:"POST" });
+  const text = await res.text();           // 🔑 QUAN TRỌNG
+  console.log("RAW RESPONSE:", text);
+
+  const json = JSON.parse(text);            // 🔑 TỰ PARSE
+  if(json.status !== "success") return [];
+  return json.data || [];
+}
+
+/* ================= RENDER ================= */
+function renderList(data){
+  const list = document.getElementById("list");
+  const loading = document.getElementById("loadingBox");
+
+  if(!data.length){
+    loading.innerText = "Không có dữ liệu";
+    return;
+  }
+
+  list.innerHTML = "";
+
+data.forEach(i => {
+  const div = document.createElement("div");
+  div.className = "item";
+  div.dataset.title = i.title;   // ⭐ QUAN TRỌNG
+  div.innerHTML = `<p>${escapeHtml(i.title)}</p>`;
+  list.appendChild(div);
+});
+
+
+  loading.style.display = "none";
+  list.style.display = "grid";
+
+  list.onclick = e=>{
+    const it = e.target.closest(".item");
+    if(it){
+      const slug = toSlug(it.dataset.title);
+      location.href = "detail_congtacquansu.html?slug=" + slug;
+    }
+  };
+}
+
+/* ================= INIT ================= */
+(async function(){
+  try{
+    const data = await fetchData();
+    renderList(data);
+  }catch(err){
+    document.getElementById("loadingBox").innerText = "Lỗi tải dữ liệu";
+    console.error(err);
+  }
+})();
+</script>
+
+</body>
+</html>

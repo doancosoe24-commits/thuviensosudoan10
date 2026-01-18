@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <link rel="shortcut icon" href="./img/logo.png" type="image/x-icon">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Thư Viện Pháp Luật Số - Tài Liệu Ngành</title>
+
+  <style>
+    :root{
+      --primary:#004aad;
+      --gold:#ccae6e;
+      --bg:#f6f8fb;
+      --card:#ffffff;
+      --text:#1f2937;
+      --muted:#6b7280;
+      --radius:16px;
+      --shadow:0 10px 25px rgba(0,0,0,0.08);
+    }
+
+    *{ box-sizing:border-box; }
+
+    html, body{
+      margin:0;
+      height:100%;
+      font-family:"Segoe UI", Arial, sans-serif;
+      background:var(--bg);
+      color:var(--text);
+    }
+
+    body{
+      display:flex;
+      flex-direction:column;
+      width:70%;
+      margin:0 auto;
+    }
+
+    main{
+      flex:1;
+      padding:28px 0 40px;
+    }
+
+    /* ---------- BACK (ĐỒNG BỘ CODE 1) ---------- */
+    .back-link{
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      padding:8px 14px;
+      border-radius:999px;
+      background:#fff;
+      box-shadow:var(--shadow);
+      color:var(--primary);
+      font-weight:600;
+      cursor:pointer;
+      transition:.25s;
+      margin-bottom:20px;
+    }
+    .back-link:hover{
+      background:var(--primary);
+      color:#fff;
+    }
+
+    /* ---------- TITLE ---------- */
+    #pageTitle{
+      text-align:center;
+      color:var(--gold);
+      text-transform:uppercase;
+      font-size:22px;
+      font-weight:800;
+      margin:10px 0 28px;
+    }
+
+    /* ---------- LIST ---------- */
+    .item_list{
+      display:flex;
+      align-items:center;
+      margin-bottom:18px;
+    }
+
+    .item{
+      background:linear-gradient(135deg,var(--primary),#003a8c);
+      flex:1;
+      padding:16px 0;
+      color:var(--gold);
+      box-shadow:var(--shadow);
+      cursor:pointer;
+      transition:.3s;
+      text-align:center;
+      border-radius:var(--radius);
+    }
+
+    .item p{
+      margin:0;
+      font-size:16px;
+      font-weight:700;
+    }
+
+    .item:hover{
+      transform:translateY(-4px);
+      box-shadow:0 16px 32px rgba(0,0,0,0.18);
+      color:#fff;
+    }
+
+    /* ---------- LOADING (ĐỒNG BỘ CODE 1) ---------- */
+    #loadingBox{
+      display:flex;
+      flex-direction:column;
+      justify-content:center;
+      align-items:center;
+      padding:60px 0;
+      color:var(--primary);
+      font-size:16px;
+      font-weight:600;
+    }
+
+    .loader{
+      width:54px;
+      height:54px;
+      border:4px solid rgba(0,0,0,0.1);
+      border-top-color:var(--gold);
+      border-radius:50%;
+      animation:spin .7s linear infinite;
+      margin-bottom:16px;
+    }
+
+    @keyframes spin{
+      to{ transform:rotate(360deg); }
+    }
+
+    /* ---------- ERROR ---------- */
+    #loadingBox.error{
+      color:#dc2626;
+    }
+
+    /* ---------- RESPONSIVE ---------- */
+    @media(max-width:768px){
+      body{ width:100%; }
+      .item p{ font-size:14px; }
+    }
+  </style>
+</head>
+<body>
+
+<div id="header"></div>
+
+<main>
+  <span class="back-link" onclick="history.back()">← Quay lại</span>
+
+  <h2 id="pageTitle"></h2>
+
+  <div id="loadingBox">
+    <div class="loader"></div>
+    Đang tải dữ liệu...
+  </div>
+
+  <div id="list" style="display:none;"></div>
+</main>
+
+<div id="footer"></div>
+<script src="main.js"></script>
+<script>
+/* ---------- CẤU HÌNH ---------- */
+const webAppUrl = "https://script.google.com/macros/s/AKfycbxPWbbwdGjo3VrbBfzlzCcpGfqCQ7aNHLCsjkzTKdp7h7flB34JZKbsDGZ11l8si0PpHA/exec";
+
+let ALL_DOCUMENTS = [];
+let ALL_CATEGORIES = [];
+
+/* ---------- HELPERS ---------- */
+function escapeHtml(str){
+  if(!str) return "";
+  return String(str)
+    .replace(/&/g,"&amp;")
+    .replace(/</g,"&lt;")
+    .replace(/>/g,"&gt;")
+    .replace(/"/g,"&quot;")
+    .replace(/'/g,"&#39;");
+}
+
+function toSlug(text){
+  if(!text) return "";
+  // normalize basic diacritics and some special Vietnamese chars
+  text = String(text).replace(/Đ/g,"D").replace(/đ/g,"d");
+  let str = text.normalize("NFD").replace(/[\u0300-\u036f]/g,"");
+  // keep letters and numbers, split words, create a consistent slug format
+  return str.split(/\s+/).map(w =>
+    w.replace(/[^a-zA-Z0-9]/g,"").replace(/^./, c=>c.toUpperCase())
+  ).join("");
+}
+
+function getQueryParam(name){
+  return new URLSearchParams(window.location.search).get(name);
+}
+
+function showError(msg){
+  const box = document.getElementById("loadingBox");
+  box.classList.add("error");
+  box.innerHTML = msg;
+}
+
+/* ---------- TỰ ĐỘNG ĐẶT TIÊU ĐỀ TÙY THEO SLUG ---------- */
+function updatePageTitleFromSlug(slug){
+  if(!slug) {
+    document.getElementById("pageTitle").innerText = "TRUYỀN THỐNG";
+    return;
+  }
+
+  // Nếu slug khớp tên đặc biệt -> hiển thị tiêu đề yêu cầu
+  const special = toSlug("TruyenThongQuanDoanSuDoan");
+  if(slug.toLowerCase() === special.toLowerCase()){
+    document.getElementById("pageTitle").innerText = "TRUYỀN THỐNG QUÂN ĐOÀN - SƯ ĐOÀN";
+    return;
+  }
+
+  // Thử tìm tiêu đề trong danh mục (nếu có)
+  const cat = ALL_CATEGORIES.find(c=>{
+    // các trường tên có thể là title/name/category
+    const names = [c.title, c.name, c.category].filter(Boolean);
+    return names.some(n => toSlug(n) === slug);
+  });
+
+  if(cat){
+    const title = cat.title || cat.name || cat.category || slug;
+    document.getElementById("pageTitle").innerText = title.toString().toUpperCase();
+    return;
+  }
+
+  // fallback: dùng slug (chuyển dạng đọc được)
+  document.getElementById("pageTitle").innerText = slug.replace(/([A-Z])/g," $1").trim().toUpperCase();
+}
+
+/* ---------- LOAD ---------- */
+async function loadPage(){
+  try{
+    const resRaw = await fetch(webAppUrl).then(r=>r.json());
+    // console.log để debug cấu trúc trả về
+    console.log("📌 RAW RESPONSE:", resRaw);
+
+    // cố gắng lấy data ở nhiều vị trí khả dĩ (linh hoạt với cấu trúc JSON)
+    const resData = resRaw || {};
+    const maybeData = resData.data || resData;
+    // Một số scripts trả về object chứa nhiều bảng, nên tìm bảng hợp lý
+    // ưu tiên các key có từ 'Truyen' hoặc 'TruyenThong' hoặc 'TruyenThongDakTo'
+    let docs = [];
+
+    if(Array.isArray(maybeData)) {
+      docs = maybeData;
+    } else {
+      // kiếm các trường khả dĩ
+      const preferKeys = ["TruyenThongDakTo","TruyenThong","TruyenThongQuanDoanSuDoan","TruyenThongQuanDoan","TruyenThongQDSD"];
+      for(const k of preferKeys){
+        if(maybeData[k] && Array.isArray(maybeData[k])){
+          docs = maybeData[k];
+          break;
+        }
+      }
+      // nếu chưa có, thử lấy mọi mảng con đầu tiên
+      if(!docs.length){
+        for(const k in maybeData){
+          if(Array.isArray(maybeData[k]) && maybeData[k].length){
+            docs = maybeData[k];
+            break;
+          }
+        }
+      }
+    }
+
+    // categories — nếu có trường Category hoặc CategoryList
+    let cats = [];
+    if(resData.Category && Array.isArray(resData.Category)) cats = resData.Category;
+    else if(resData.categories && Array.isArray(resData.categories)) cats = resData.categories;
+    else if(maybeData.Category && Array.isArray(maybeData.Category)) cats = maybeData.Category;
+    else {
+      // fallback: nếu docs chứa trường category -> xây danh sách category duy nhất
+      const map = new Map();
+      (docs||[]).forEach(d=>{
+        const c = (d.category || d.name || d.title || "").toString().trim();
+        if(c && !map.has(c)){
+          map.set(c, { title: c, slug: toSlug(c) });
+        }
+      });
+      cats = Array.from(map.values());
+    }
+
+    ALL_DOCUMENTS = docs || [];
+    ALL_CATEGORIES = cats || [];
+
+    console.log("📌 NORMALIZED DOCUMENTS:", ALL_DOCUMENTS);
+    console.log("📌 NORMALIZED CATEGORIES:", ALL_CATEGORIES);
+
+    if(!ALL_DOCUMENTS.length){
+      showError("Không tìm thấy tài liệu nào.");
+      return;
+    }
+
+    renderList(ALL_DOCUMENTS);
+
+    const slugFromURL = getQueryParam("slug");
+    if(slugFromURL) updatePageTitleFromSlug(slugFromURL);
+
+  }catch(err){
+    console.error("❌ Lỗi loadPage:", err);
+    showError("Không thể tải dữ liệu.");
+  }
+}
+
+/* ---------- RENDER ---------- */
+function renderList(data){
+  const list = document.getElementById("list");
+  const loading = document.getElementById("loadingBox");
+
+  console.log("📌 DATA NHẬN VỀ (render):", data);
+
+  // map unique theo category/name/title — không phụ thuộc vào trường 'title'
+  const uniqueMap = new Map();
+
+  data.forEach(i=>{
+    // ưu tiên: category -> name -> title
+    const display = (i.category || i.name || i.title || "").toString().trim();
+    if(!display) return;
+    const key = display.toLowerCase();
+    if(!uniqueMap.has(key)) uniqueMap.set(key, i);
+  });
+
+  list.innerHTML="";
+  const frag=document.createDocumentFragment();
+
+  uniqueMap.forEach(i=>{
+    const display = escapeHtml((i.category).toString());
+    const div=document.createElement("div");
+    div.className="item_list";
+    div.innerHTML=`
+      <div class="item" data-title="${display}">
+        <p>${display}</p>
+      </div>
+    `;
+    frag.appendChild(div);
+  });
+
+  list.appendChild(frag);
+  loading.style.display="none";
+  list.style.display="block";
+
+  list.onclick=e=>{
+    const item=e.target.closest(".item");
+    if(item){
+      const slug=toSlug(item.dataset.title);
+      window.location.href=`TruyenThongQuanDoanSuDoan_detail.html?slug=${slug}`;
+    }
+  };
+}
+
+loadPage();
+</script>
+
+</body>
+</html>

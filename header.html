@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" 
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css"/>
+<title>Search Example</title>
+
+<style>
+    header{ width: 100%; padding:0; }
+    .logo{ display: flex; justify-content: space-between; }
+        .logo img{
+  width: 100px;      /* cố định 1 chiều */
+  height: auto;      /* chiều còn lại tự co giãn */
+  max-height: 100px; /* không vượt quá */
+  object-fit: contain;
+}
+
+    /* USER BOX */
+    #userBox{
+        text-align: right;
+        padding: 5px 10px;
+        font-size: 15px;
+        font-weight: 700;
+        color: #004aad;
+    }
+
+    #userBox span{ cursor: pointer; }
+
+    .search{
+        margin-top: 10px;
+        text-align: right;
+        position: relative;
+    }
+
+    .search input{
+        padding: 10px;
+        background: #004aad;
+        border: none;
+        border-radius: 5px;
+        color: white;
+    }
+    .search button{
+        padding: 10px;
+        background:none;
+        border: none;
+        color: black;
+    }
+    .search button i{ font-size: 16px; }
+
+    /* NÚT CLEAR */
+    #clearBtn {
+        position: absolute;
+        right: 40px; /* canh bên trong input */
+        top: 50%;
+        transform: translateY(-50%);
+        cursor: pointer;
+        color: white;
+        font-size: 18px;
+        display: none;
+        font-weight: bold;
+        user-select: none;
+    }
+
+    .results{
+        position: absolute;
+        right: 0;
+        background: #ccae6e;
+        width: 100%;
+        max-height: 400px;
+        overflow-y: auto;
+        border: 1px solid #004aad;
+        border-radius: 5px;
+        display: none;
+        z-index: 10;
+        color: black;
+        margin-top: 20px;
+    }
+    .results div{
+        padding: 5px 10px;
+        cursor: pointer;
+    }
+
+    hr{ height: 4px; background: #004aad; }
+    #clearBtn{
+        margin-right: 10px;
+    }
+</style>
+</head>
+
+<body>
+
+<header>
+
+    <!-- LOGO -->
+    <div class="logo">
+        <a href="./index.html"><img src="./img/logo.png" alt=""></a>
+        <a href="./index.html" ><img style="width:70px;height:70px" src="./img/logo2.png" alt=""></a>
+    </div>
+
+    <!-- USER LOGIN BOX -->
+    <div id="userBox"></div>
+
+    <!-- SEARCH -->
+    <div class="search">
+        <input type="text" id="searchInput" placeholder="Tìm kiếm">
+        <span id="clearBtn">&times;</span>
+        <button id="searchBtn" type="button"><i class="fa-solid fa-magnifying-glass"></i></button>
+        <div class="results" id="results"></div>
+    </div>
+</header>
+
+<hr>
+<script src="main.js"></script>
+</body>
+</html>

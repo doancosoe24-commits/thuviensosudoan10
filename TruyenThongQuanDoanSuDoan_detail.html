@@ -1,0 +1,388 @@
+<!DOCTYPE html>  
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <link rel="shortcut icon" href="./img/logo.png" type="image/x-icon">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Thư Viện Pháp Luật Số - Chi Tiết</title>
+
+  <style>
+    :root{
+      --primary:#004aad;
+      --gold:#ccae6e;
+      --bg:#f6f8fb;
+      --card:#ffffff;
+      --text:#1f2937;
+      --muted:#6b7280;
+      --radius:16px;
+      --shadow:0 10px 25px rgba(0,0,0,0.08);
+    }
+
+    *{ box-sizing:border-box; }
+
+    html, body{
+      margin:0;
+      height:100%;
+      font-family:"Segoe UI", Arial, sans-serif;
+      background:var(--bg);
+      color:var(--text);
+    }
+
+    body{
+      display:flex;
+      flex-direction:column;
+      width:75%;
+      margin:0 auto;
+    }
+
+    main{
+      flex:1;
+      padding:28px 0 40px;
+    }
+
+    /* ---------- BACK ---------- */
+    .back-link{
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      padding:8px 14px;
+      border-radius:999px;
+      background:#fff;
+      box-shadow:var(--shadow);
+      color:var(--primary);
+      font-weight:600;
+      cursor:pointer;
+      transition:.25s;
+      margin-bottom:18px;
+    }
+    .back-link:hover{
+      background:var(--primary);
+      color:#fff;
+    }
+
+    /* ---------- TITLE ---------- */
+    #pageTitle{
+      text-align:center;
+      color:var(--primary);
+      font-size:22px;
+      font-weight:800;
+      letter-spacing:1px;
+      margin:10px 0 30px;
+      text-transform:uppercase;
+    }
+
+    /* ---------- LIST ---------- */
+    #list{
+      display:flex;
+      flex-direction:column;
+      gap:18px;
+    }
+
+    .item_list{
+      display:flex;
+      align-items:center;
+      gap:14px;
+      margin: 10px 0;
+    }
+
+    /* ---------- ARROW ---------- */
+    .arrow{
+      min-width:64px;
+      height:44px;
+      background:linear-gradient(135deg,var(--gold),#bda15d);
+      clip-path: polygon(0% 0%,78% 0%,100% 50%,78% 100%,0% 100%,18% 50%);
+      box-shadow:var(--shadow);
+    }
+
+    /* ---------- ITEM ---------- */
+    .item{
+      flex:1;
+      background:linear-gradient(135deg,var(--primary),#003a8c);
+      border-radius:var(--radius);
+      padding:18px 22px;
+      color:var(--gold);
+      cursor:pointer;
+      box-shadow:var(--shadow);
+      transition:.3s;
+      position:relative;
+      overflow:hidden;
+    }
+
+    .item::after{
+      content:"";
+      position:absolute;
+      inset:0;
+      background:linear-gradient(135deg,transparent,rgba(255,255,255,.12));
+      opacity:0;
+      transition:.3s;
+    }
+
+    .item:hover{
+      transform:translateY(-4px);
+      box-shadow:0 16px 30px rgba(0,0,0,0.18);
+      color:#fff;
+    }
+
+    .item:hover::after{ opacity:1; }
+
+    .item p{
+      margin:0;
+      font-size:16px;
+      font-weight:700;
+      line-height:1.4;
+    }
+
+    /* ---------- LOADING ---------- */
+    #loadingBox{
+      display:flex;
+      flex-direction:column;
+      justify-content:center;
+      align-items:center;
+      padding:60px 0;
+      color:var(--primary);
+      font-size:16px;
+      font-weight:600;
+    }
+
+    .loader{
+      width:54px;
+      height:54px;
+      border:4px solid rgba(0,0,0,0.1);
+      border-top-color:var(--gold);
+      border-radius:50%;
+      animation:spin .7s linear infinite;
+      margin-bottom:16px;
+    }
+
+    @keyframes spin{
+      to{ transform:rotate(360deg); }
+    }
+
+    /* ---------- RESPONSIVE ---------- */
+    @media(max-width:1024px){
+      body{ width:90%; }
+    }
+
+    @media(max-width:768px){
+      body{ width:100%; padding:0; }
+      #pageTitle{ font-size:18px; }
+      .arrow{ min-width:48px;height:36px; }
+      .item p{ font-size:14px; }
+    }
+  </style>
+</head>
+
+<body>
+
+<div id="header"></div>
+
+<main>
+  <span class="back-link" onclick="history.back()">← Quay lại</span>
+
+  <h2 id="pageTitle"></h2>
+
+  <div id="loadingBox">
+    <div class="loader"></div>
+    Đang tải dữ liệu...
+  </div>
+
+  <div id="list" style="display:none;"></div>
+</main>
+
+<div id="footer"></div>
+<script src="main.js"></script>
+<script>
+/*
+  Chỉnh: chắc chắn CHỈ dùng `title` để tạo/so sánh slug/hiển thị.
+  Nếu record không có `title` sẽ bị SKIP (không fallback sang category).
+  Thêm console rõ ràng để bạn debug.
+*/
+
+const webAppUrl = "https://script.google.com/macros/s/AKfycbxPWbbwdGjo3VrbBfzlzCcpGfqCQ7aNHLCsjkzTKdp7h7flB34JZKbsDGZ11l8si0PpHA/exec";
+
+// Chuẩn hoá: bỏ dấu, giữ chữ & số, giữ hoa-thường (không ép lên/viết hoa)
+function normalizeTitle(text){
+  if(!text) return "";
+
+  // Đ → D
+  text = text.replace(/Đ/g, "D").replace(/đ/g, "d");
+
+  // Bỏ dấu tiếng Việt
+  let str = text
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+
+  // Tách từ → làm sạch → viết hoa chữ cái đầu → nối lại
+  return str
+    .split(/\s+/)
+    .map(w =>
+      w
+        .replace(/[^a-zA-Z0-9]/g, "")
+        .replace(/^./, c => c.toUpperCase())
+    )
+    .join("");
+}
+
+
+
+// Lấy slug từ URL param "slug"
+function getSlugFromURL(){
+  try{
+    const url = new URL(window.location.href);
+    const raw = url.searchParams.get("slug") || "";
+    return decodeURIComponent(raw);
+  }catch(e){
+    return "";
+  }
+}
+
+function showMessage(titleText, messageText){
+  document.getElementById("pageTitle").textContent = titleText;
+  const list = document.getElementById("list");
+  list.style.display = "block";
+  list.innerHTML = `<p style="text-align:center;color:#6b7280">${messageText}</p>`;
+  document.getElementById("loadingBox").style.display = "none";
+}
+
+function createItemElement(titleRaw){
+  const wrapper = document.createElement("div");
+  wrapper.className = "item_list";
+
+  const arrow = document.createElement("div");
+  arrow.className = "arrow";
+
+  const item = document.createElement("div");
+  item.className = "item";
+  item.dataset.title = titleRaw; // lưu đúng title
+
+  const p = document.createElement("p");
+  p.textContent = titleRaw;
+
+  item.appendChild(p);
+  wrapper.appendChild(arrow);
+  wrapper.appendChild(item);
+
+  return wrapper;
+}
+
+async function loadPage(){
+  const loadingBox = document.getElementById("loadingBox");
+  const listEl = document.getElementById("list");
+  loadingBox.style.display = "flex";
+  listEl.style.display = "none";
+  listEl.innerHTML = "";
+
+  const pageSlugRaw = getSlugFromURL();
+  const pageSlugNorm = normalizeTitle(pageSlugRaw);
+
+  console.log("🔵 SLUG URL RAW:", pageSlugRaw);
+  console.log("🔵 SLUG URL NORMALIZED:", pageSlugNorm);
+
+  if(!pageSlugRaw){
+    showMessage("KHÔNG TÌM THẤY TÀI LIỆU", "Thiếu tham số slug trong URL.");
+    return;
+  }
+
+  try{
+    const resp = await fetch(webAppUrl);
+    if(!resp.ok) throw new Error("Fetch không thành công: " + resp.status);
+    const res = await resp.json();
+
+    const rawList = (res && res.data && res.data.TruyenThongDakTo) ? res.data.TruyenThongDakTo : [];
+
+    console.log("ℹ️ Tổng số bản ghi từ sheet:", Array.isArray(rawList) ? rawList.length : 0);
+
+    if(!Array.isArray(rawList) || rawList.length === 0){
+      showMessage("KHÔNG TÌM THẤY TÀI LIỆU", "Không có dữ liệu từ nguồn.");
+      return;
+    }
+
+    // Duyệt thủ công để LOG rõ, và CHỈ dùng title (không fallback sang category)
+    const matched = [];
+    rawList.forEach((d, idx) => {
+      // Log cả title + category để bạn thấy nguồn dữ liệu
+      console.log(`--- record[${idx}] ---`, d);
+
+      if(!d || !d.title || !String(d.title).trim()){
+        console.log(`SKIP record[${idx}] — missing title. (category="${d && d.category ? d.category : ''}")`);
+        return; // skip: KHÔNG dùng category thay thế
+      }
+
+      const titleRaw = String(d.category).trim();
+      const titleNorm = normalizeTitle(titleRaw);
+
+      console.log(`TITLE RAW: "${titleRaw}" → TITLE NORMALIZED: "${titleNorm}"`);
+      // So sánh: chính xác hoặc chứa nhau (liên quan)
+      if(
+        titleNorm === pageSlugNorm ||
+        titleNorm.includes(pageSlugNorm) ||
+        pageSlugNorm.includes(titleNorm)
+      ){
+        matched.push(d);
+        console.log(`MATCH record[${idx}] (title matches slug)`);
+      } else {
+        console.log(`NO MATCH record[${idx}]`);
+      }
+    });
+
+    console.log("✅ Số mục khớp/liên quan:", matched.length);
+
+    if(matched.length === 0){
+      showMessage("KHÔNG TÌM THẤY TÀI LIỆU", "Không có tài liệu trùng khớp hoặc liên quan với slug.");
+      return;
+    }
+
+    // Hiển thị tiêu đề chính (dùng category của mục đầu tiên) — giữ nguyên giao diện
+    document.getElementById("pageTitle").textContent = matched[0].category ? matched[0].category.toUpperCase() : "CHI TIẾT TÀI LIỆU";
+
+    const frag = document.createDocumentFragment();
+    let hasItem = false;
+
+    matched.forEach(i => {
+      if(!i || !i.title || !i.title.trim()) return;
+      hasItem = true;
+      console.log("🟢 RENDER ITEM:", i.title);
+      const el = createItemElement(i.title.trim());
+      frag.appendChild(el);
+    });
+
+    loadingBox.style.display = "none";
+    listEl.style.display = "block";
+
+    if(!hasItem){
+      listEl.innerHTML = `<p style="text-align:center;color:#6b7280">Chưa có tài liệu</p>`;
+      return;
+    }
+
+    listEl.appendChild(frag);
+
+    // Click: chỉ dùng dataset.title để tạo slug
+    listEl.onclick = e => {
+      const item = e.target.closest(".item");
+      if(!item) return;
+
+      const titleClicked = item.dataset.title;
+      if(!titleClicked) return;
+
+      const nSlug = normalizeTitle(titleClicked);
+
+      console.log("🔴 CLICK TITLE:", titleClicked);
+      console.log("🔴 SLUG FROM TITLE (normalized):", nSlug);
+
+      const redirectUrl = `detail_truyenthong.html?slug=${encodeURIComponent(nSlug)}`;
+      console.log("🔴 REDIRECT TO:", redirectUrl);
+
+      window.location.href = redirectUrl;
+    };
+
+  } catch(err){
+    console.error("❌ Lỗi loadPage:", err);
+    showMessage("LỖI KẾT NỐI", "Không thể tải dữ liệu. Vui lòng thử lại sau.");
+  }
+}
+
+loadPage();
+</script>
+
+</body>
+</html>

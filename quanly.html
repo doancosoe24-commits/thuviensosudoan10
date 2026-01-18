@@ -1,0 +1,356 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Quản lý - Thư Viện Pháp Luật Số Sư Đoàn 10</title>
+    <link rel="shortcut icon" href="./img/logo.png" type="image/x-icon">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f6f8fb; --card:#fff; --text:#0f172a;
+  --accent:#004aad; --accent-2:#2dd4bf; --muted:#6b7280;
+  --radius:12px; --gap:1rem; --shadow:0 8px 30px rgba(15,23,42,0.08);
+  font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --transition:0.28s ease;
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0;background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}
+.app{display:flex;min-height:100vh;transition:margin-left var(--transition)}
+/* SIDEBAR */
+.sidebar{
+  width:260px; max-width:260px; background:var(--card); padding:18px;
+  position:fixed; top:0; left:-300px; height:100%; overflow:auto;
+  box-shadow:var(--shadow); border-radius:0 12px 12px 0; transition:all var(--transition); z-index:60;
+}
+.sidebar.open{left:0}
+.sidebar.collapsed{width:72px}
+.brand{display:flex;gap:12px;align-items:center;margin-bottom:1rem}
+.brand .logo img{width:54px;height:54px;border-radius:8px;object-fit:cover}
+.brand .brand-text{font-weight:700;font-size:22px;color:var(--accent)}
+.nav{display:flex;flex-direction:column;gap:6px;margin-top:6px}
+.nav a{padding:10px 12px;border-radius:10px;font-weight:600;transition:all .18s;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--text)}
+.sidebar .nav a:hover{background:linear-gradient(90deg, rgba(0,74,173,0.07), rgba(45,212,191,0.03)); transform:translateY(-2px)}
+.nav a[aria-current="true"]{background:linear-gradient(90deg, rgba(0,74,173,0.12), rgba(45,212,191,0.04));box-shadow:0 6px 18px rgba(0,74,173,0.04)}
+.main{flex:1;margin-left:0;padding:18px;transition:margin-left var(--transition)}
+.header{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.search{flex:1;display:flex;align-items:center;background:var(--card);padding:8px;border-radius:12px;box-shadow:var(--shadow);min-width:220px}
+.search input{border:0;outline:none;background:transparent;padding:6px 8px;flex:1;color:var(--text);font-size:15px}
+.controls{display:flex;align-items:center;gap:8px}
+.btn{padding:8px 12px;border-radius:10px;border:none;cursor:pointer;background:var(--card);box-shadow:var(--shadow);display:inline-flex;align-items:center;gap:8px}
+.btn:hover{transform:translateY(-2px)}
+.avatar{width:40px;height:40px;border-radius:999px;background:linear-gradient(135deg,var(--accent),var(--accent-2));display:grid;place-items:center;color:white;font-weight:700;font-size:0.95rem}
+.app-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.22);display:none;z-index:50;opacity:0;transition:opacity var(--transition)}
+.app-overlay.active{display:block;opacity:1}
+#protectLoader{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,0.85);z-index:9999;font-size:16px;color:var(--muted)}
+.accessNotice{margin:0.75rem 0;padding:0.75rem;border-radius:10px;background:#fff7ed;color:#7a4b00;border:1px solid rgba(250,180,50,0.12);box-shadow:0 6px 18px rgba(15,23,42,0.06);font-weight:600}
+iframe#contentFrame{width:100%;height:calc(100vh - 120px);border:0;border-radius:10px;background:#fff;box-shadow:var(--shadow);margin-top: 10px;}
+
+/* responsive */
+@media(min-width:1024px){
+  .main{margin-left:260px}
+  .sidebar{left:0}
+}
+@media(max-width:900px){
+  .sidebar{left:-100%;position:fixed}
+  .main{margin-left:0;padding:12px}
+  iframe#contentFrame{height:calc(100vh - 140px)}
+}
+</style>
+</head>
+<body>
+
+<div id="protectLoader">Đang kiểm tra quyền truy cập — vui lòng chờ...</div>
+
+<div class="app-overlay" id="overlay"></div>
+
+<div class="app" aria-hidden="true">
+  <aside class="sidebar" id="sidebar" aria-label="Chức năng quản trị">
+    <div class="brand">
+      <div class="logo"><img src="./img/logo1.jpg" alt="logo" onerror="this.style.display='none'"></div>
+      <div class="brand-text">Quản Lý Thư Viện Pháp Luật</div>
+    </div>
+
+    <nav class="nav" role="navigation" aria-label="Menu">
+      <a href="dashboard.html" aria-current="true">Trang chủ</a>
+      <a href="quanly_users.html">Tài khoản</a>
+      <a href="quanly_thuvienphapluatso.html">Thư viện pháp luật số</a>
+      <a href="quanly_tailieunganh.html">Tài liệu ngành</a>
+      <a href="quanly_tailieutaphuan.html">Tập huấn</a>
+      <a href="quanly_tailieuthamkhao.html">Tài liệu tham khảo</a>
+      <a href="quanly_hoctaplamtheotutuonghochiminh.html">Học tập theo tư tưởng Hồ Chí Minh</a>
+      <a href="quanly_truyenthongdoandakto.html">Truyền thống đoàn Đăk Tô</a>
+      <a href="quanly_congtacquansu.html">Công tác quân sự</a>
+      <a href="quanly_history.html">Lịch sử đăng nhập</a>
+      <a href="quanly_setting.html">Cài đặt</a>
+      <a onclick="logout()" href="javascript:void(0);">Đăng xuất</a>
+    </nav>
+  </aside>
+
+  <main class="main" id="main">
+    <header class="header" role="banner">
+      <button class="btn" id="sidebarToggle" aria-label="Mở menu">☰</button>
+
+      <div class="search" role="search">
+        <input id="quickSearch" type="search" placeholder="Tìm nhanh..." aria-label="Tìm nhanh">
+      </div>
+
+      <div class="controls" id="controls">
+        <div id="adminAvatar" class="avatar" title="User"></div>
+        <a href="./index.html">
+  <button
+    id="collapseSidebar"
+    title="Thu gọn menu"
+    style="
+      width:44px;
+      height:44px;
+
+      border:none;
+      border-radius:12px;
+      cursor:pointer;
+
+      background:linear-gradient(135deg,#4f46e5,#06b6d4);
+      color:white;
+      font-size:18px;
+      font-weight:600;
+
+      box-shadow:0 6px 16px rgba(0,0,0,.18);
+      transition:all .25s ease;
+    "
+    onmouseover="this.style.transform='translateY(-2px) scale(1.05)';this.style.boxShadow='0 10px 22px rgba(0,0,0,.25)'"
+    onmouseout="this.style.transform='none';this.style.boxShadow='0 6px 16px rgba(0,0,0,.18)'"
+  >
+    ⇔
+  </button>
+</a>
+      </div>
+    </header>
+
+    <div id="mainContent">
+      <!-- optional notice injected here -->
+      <iframe id="contentFrame" src="dashboard.html" title="Nội dung quản trị"></iframe>
+    </div>
+  </main>
+</div>
+
+<script>
+/* ================= CONFIG ================= */
+const API_URL = "https://script.google.com/macros/s/AKfycbxPWbbwdGjo3VrbBfzlzCcpGfqCQ7aNHLCsjkzTKdp7h7flB34JZKbsDGZ11l8si0PpHA/exec";
+
+/* ================= PROTECT PAGE: check-manager ================= */
+(async function protectAdminPage(){
+  try {
+    const raw = localStorage.getItem("loggedInUser");
+    if(!raw){
+      alert("Bạn cần đăng nhập.");
+      window.location.href = "index.html";
+      return;
+    }
+
+    let parsed;
+    try { parsed = JSON.parse(raw); } catch(e) { parsed = raw; }
+
+    // robust token extraction
+    const token = (parsed && parsed.token) || (parsed && parsed.user && (parsed.user.token || parsed.user.accessToken)) || null;
+    if(!token){
+      alert("Không tìm thấy token, vui lòng đăng nhập lại.");
+      localStorage.removeItem("loggedInUser");
+      window.location.href = "index.html";
+      return;
+    }
+
+    // call backend check-manager
+    const resp = await fetch(`${API_URL}?route=check-manager&token=${encodeURIComponent(token)}`);
+    if(!resp.ok){
+      // try fallback check-admin
+      try {
+        const fb = await fetch(`${API_URL}?route=check-admin&token=${encodeURIComponent(token)}`);
+        if(fb.ok){
+          const fbd = await fb.json();
+          if(fbd && fbd.status === 'success' && fbd.isAdmin){
+            window.__CURRENT_ADMIN_TOKEN = token;
+            window.__CURRENT_ADMIN_USER = (parsed && parsed.user) || fbd.user || {};
+            document.getElementById('protectLoader').remove();
+            initAfterAuth(true);
+            return;
+          }
+        }
+      } catch(e){}
+      alert("Lỗi xác thực. Vui lòng đăng nhập lại.");
+      localStorage.removeItem("loggedInUser");
+      window.location.href = "index.html";
+      return;
+    }
+
+    const data = await resp.json();
+    if(!data || data.status !== 'success' || !data.isManager){
+      alert("Bạn không có quyền truy cập (chỉ admin hoặc editor).");
+      window.location.href = "index.html";
+      return;
+    }
+
+    // ok -> continue
+    window.__CURRENT_ADMIN_TOKEN = token;
+    window.__CURRENT_ADMIN_USER = (data.user && Object.keys(data.user).length) ? data.user : ((parsed && parsed.user) || {});
+    const loader = document.getElementById('protectLoader'); if(loader) loader.remove();
+    initAfterAuth(true);
+  } catch (err) {
+    console.error("protectAdminPage error:", err);
+    alert("Lỗi khi kiểm tra quyền. Về trang chủ.");
+    window.location.href = "index.html";
+  }
+})();
+
+/* ================= INIT AFTER AUTH ================= */
+function initAfterAuth(isManager){
+  try {
+    const user = window.__CURRENT_ADMIN_USER || {};
+    const token = window.__CURRENT_ADMIN_TOKEN || "";
+
+    // avatar letter + title
+    const av = document.getElementById('adminAvatar');
+    const name = (user.username || user.email || user.name || "Q").toString();
+    av.textContent = name.charAt(0).toUpperCase();
+    av.title = name;
+
+    // build allowed links based on user.check (if backend provides)
+    let checkVal = (user.check !== undefined && user.check !== null) ? String(user.check).trim().toLowerCase() : 'all';
+    const accessMap = {
+      'all': [
+        'dashboard.html','quanly_users.html','quanly_thuvienphapluatso.html','quanly_tailieunganh.html',
+        'quanly_tailieutaphuan.html','quanly_tailieuthamkhao.html','quanly_category.html','quanly_setting.html'
+      ],
+      '1': ['quanly_thuvienphapluatso.html'],
+      '2': ['quanly_tailieunganh.html'],
+      '3': ['quanly_tailieutaphuan.html','quanly_tailieuthamkhao.html'],
+      '4': ['quanly_category.html','quanly_setting.html']
+    };
+    const allowed = accessMap[checkVal] || [];
+
+    // process nav links: hide those not allowed for limited users
+    const navLinks = Array.from(document.querySelectorAll('.nav a'));
+    let anyShown = false;
+    navLinks.forEach(a => {
+      const href = (a.getAttribute('href') || '').trim();
+      const isLogout = a.textContent.toLowerCase().includes('đăng xuất');
+      if(checkVal === 'all' || isLogout || allowed.includes(href) ){
+        a.style.display = '';
+        anyShown = true;
+      } else {
+        a.style.display = 'none';
+      }
+
+      a.addEventListener('click', e=>{
+        // prevent hidden link navigation (extra guard)
+        const style = window.getComputedStyle(a);
+        if(style.display === 'none') { e.preventDefault(); alert('Bạn không có quyền truy cập mục này.'); return; }
+      });
+    });
+
+    // inject notice for limited users
+    if(checkVal !== 'all'){
+      const mainEl = document.querySelector('.main');
+      if(mainEl && !document.getElementById('accessNotice')){
+        const note = document.createElement('div');
+        note.className = 'accessNotice';
+        note.id = 'accessNotice';
+        note.textContent = 'Quyền hạn hiện tại: bị giới hạn — bạn chỉ truy cập các mục được phân quyền.';
+        mainEl.insertBefore(note, mainEl.firstChild);
+      }
+    }
+
+    // set iframe src default: if limited, pick first allowed, else dashboard
+    const iframe = document.getElementById('contentFrame');
+    if(iframe){
+      if(checkVal === 'all') iframe.src = 'dashboard.html';
+      else if(allowed.length) iframe.src = allowed[0];
+      else iframe.src = 'dashboard.html';
+    }
+
+    // expose token/user globally for child pages if needed
+    window.__TOKEN = token;
+    window.__CURRENT_USER = user;
+
+    // hook UI interactions (sidebar toggle, search)
+    bindUI();
+
+  } catch(e){
+    console.error('initAfterAuth error', e);
+  }
+}
+
+/* ================= UI BINDING ================= */
+function bindUI(){
+  const sidebar = document.getElementById('sidebar');
+  const overlay = document.getElementById('overlay');
+  const toggle = document.getElementById('sidebarToggle');
+  const collapseBtn = document.getElementById('collapseSidebar');
+  const links = document.querySelectorAll('.nav a');
+  const iframe = document.getElementById('contentFrame');
+  const quickSearch = document.getElementById('quickSearch');
+
+  toggle.addEventListener('click', ()=>{ sidebar.classList.add('open'); overlay.classList.add('active'); document.querySelector('.app').setAttribute('aria-hidden','false'); });
+  overlay.addEventListener('click', ()=>{ sidebar.classList.remove('open'); overlay.classList.remove('active'); });
+  document.addEventListener('keydown', e=>{ if(e.key === 'Escape'){ sidebar.classList.remove('open'); overlay.classList.remove('active'); } });
+
+  collapseBtn.addEventListener('click', ()=>{
+    sidebar.classList.toggle('collapsed');
+    // adjust main margin if collapsed on large screens
+    if(window.innerWidth >= 1024){
+      document.querySelector('.main').style.marginLeft = sidebar.classList.contains('collapsed') ? '72px' : '260px';
+    }
+  });
+
+  links.forEach(link=>{
+    link.addEventListener('click', e=>{
+      const style = window.getComputedStyle(link);
+      if(style.display === 'none' || link.getAttribute('href') === 'javascript:void(0);'){
+        e.preventDefault(); return;
+      }
+      const href = link.getAttribute('href');
+      if(href && href !== '#'){
+        e.preventDefault();
+        links.forEach(l=>l.removeAttribute('aria-current'));
+        link.setAttribute('aria-current','true');
+        // small delay to allow sidebar close animation
+        iframe.src = href;
+        sidebar.classList.remove('open');
+        overlay.classList.remove('active');
+      }
+    });
+  });
+
+  // quick search: forward keystrokes to iframe (try)
+  quickSearch.addEventListener('input', ()=>{
+    const q = quickSearch.value.trim();
+    // naive: if iframe loaded same-origin, try to call function; otherwise just set focus to iframe
+    try {
+      const win = document.getElementById('contentFrame').contentWindow;
+      if(win && typeof win.postMessage === 'function'){
+        win.postMessage({ type:'quick-search', q }, '*');
+      }
+    } catch(e){}
+  });
+
+  // resize iframe on window resize (keep height responsive)
+  function updateIframeHeight(){
+    const headerH = document.querySelector('.header').getBoundingClientRect().height;
+    const vh = window.innerHeight;
+    document.getElementById('contentFrame').style.height = `calc(${vh}px - ${headerH + 28}px)`;
+  }
+  window.addEventListener('resize', updateIframeHeight);
+  setTimeout(updateIframeHeight, 120);
+}
+
+/* ================= UTIL ================= */
+function logout(){
+  localStorage.removeItem('loggedInUser');
+  window.location.href = 'index.html';
+}
+
+/* allow other pages to read token/user by window.__TOKEN / window.__CURRENT_USER */
+</script>
+
+</body>
+</html>

@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <link rel="shortcut icon" href="./img/logo.png" type="image/x-icon">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Thư Viện Pháp Luật Số - Tài Liệu Ngành</title>
+
+  <style>
+    :root{
+      --primary:#004aad;
+      --gold:#ccae6e;
+      --bg:#f6f8fb;
+      --card:#ffffff;
+      --text:#1f2937;
+      --muted:#6b7280;
+      --radius:16px;
+      --shadow:0 10px 25px rgba(0,0,0,0.08);
+    }
+
+    *{ box-sizing:border-box; }
+
+    html, body{
+      margin:0;
+      height:100%;
+      font-family: "Segoe UI", Arial, sans-serif;
+      background:var(--bg);
+      color:var(--text);
+    }
+
+    body{
+      display:flex;
+      flex-direction:column;
+      width:75%;
+      margin:0 auto;
+    }
+
+    main{
+      flex:1;
+      padding:28px 0 40px;
+    }
+
+    /* ---------- HEADER TITLE ---------- */
+    #pageTitle{
+      text-align:center;
+      color:var(--primary);
+      font-size:24px;
+      font-weight:800;
+      letter-spacing:1px;
+      margin:10px 0 30px;
+      text-transform:uppercase;
+    }
+
+    /* ---------- BACK ---------- */
+    .back-link{
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      padding:8px 14px;
+      border-radius:999px;
+      background:#fff;
+      box-shadow:var(--shadow);
+      color:var(--primary);
+      font-weight:600;
+      cursor:pointer;
+      transition:.25s;
+      margin-bottom:20px;
+    }
+    .back-link:hover{
+      background:var(--primary);
+      color:#fff;
+    }
+
+    /* ---------- LIST GRID ---------- */
+    #list{
+      display:grid;
+      grid-template-columns:repeat(auto-fill,minmax(240px,1fr));
+      gap:22px;
+    }
+
+    .item_list{ width:100%; margin: 10px 0;}
+
+    .item{
+      background:linear-gradient(135deg,var(--primary),#003a8c);
+      border-radius:var(--radius);
+      padding:26px 18px;
+      color:var(--gold);
+      text-align:center;
+      cursor:pointer;
+      box-shadow:var(--shadow);
+      transition:.3s;
+      position:relative;
+      overflow:hidden;
+    }
+
+    .item::after{
+      content:"";
+      position:absolute;
+      inset:0;
+      background:linear-gradient(135deg,transparent,rgba(255,255,255,.12));
+      opacity:0;
+      transition:.3s;
+    }
+
+    .item:hover::after{ opacity:1; transform:scale(1.02); }
+
+    .item p{
+      margin:0;
+      font-size:17px;
+      font-weight:700;
+      line-height:1.4;
+      word-break:break-word;
+    }
+
+    /* ---------- LOADING ---------- */
+    #loadingBox{
+      display:flex;
+      flex-direction:column;
+      justify-content:center;
+      align-items:center;
+      padding:60px 0;
+      color:var(--primary);
+      font-size:16px;
+      font-weight:600;
+    }
+
+    .loader{
+      width:54px;
+      height:54px;
+      border:4px solid rgba(0,0,0,0.1);
+      border-top-color:var(--gold);
+      border-radius:50%;
+      animation:spin .7s linear infinite;
+      margin-bottom:16px;
+    }
+
+    @keyframes spin{
+      to{ transform:rotate(360deg); }
+    }
+
+    /* ---------- EMPTY / ERROR ---------- */
+    #loadingBox.error{
+      color:#dc2626;
+    }
+
+    /* ---------- RESPONSIVE ---------- */
+    @media(max-width:1024px){
+      body{ width:90%; }
+    }
+
+    @media(max-width:768px){
+      body{ width:100%; padding:0; }
+      #pageTitle{ font-size:20px; }
+      #list{ grid-template-columns:1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<div id="header"></div>
+
+<main>
+  <span class="back-link" onclick="history.back()">← Quay lại</span>
+
+  <h2 id="pageTitle"></h2>
+
+  <div id="loadingBox">
+    <div class="loader"></div>
+    Đang tải dữ liệu...
+  </div>
+
+  <div id="list" style="display:none;"></div>
+</main>
+
+<div id="footer"></div>
+  <script src="main.js"></script>
+<script>
+/* =========================
+   CẤU HÌNH: thay webAppUrl nếu cần
+   ========================= */
+const webAppUrl = "https://script.google.com/macros/s/AKfycbxPWbbwdGjo3VrbBfzlzCcpGfqCQ7aNHLCsjkzTKdp7h7flB34JZKbsDGZ11l8si0PpHA/exec";
+
+/* dữ liệu toàn cục */
+let ALL_DOCUMENTS = [];
+let ALL_CATEGORIES = [];
+
+/* ---------- helpers (giữ giao diện nguyên) ---------- */
+function escapeHtml(str){
+  if(!str) return "";
+  return String(str)
+    .replace(/&/g,"&amp;")
+    .replace(/</g,"&lt;")
+    .replace(/>/g,"&gt;")
+    .replace(/"/g,"&quot;")
+    .replace(/'/g,"&#39;");
+}
+function toSlug(text){
+  if(!text) return "";
+  // chuyển dấu Tiếng Việt -> không dấu
+  text = text.replace(/Đ/g,"D").replace(/đ/g,"d");
+  let str = text.normalize("NFD").replace(/[\u0300-\u036f]/g,"");
+  // tạo slug kiểu PascalCase (giữ tương thích với phần còn lại)
+  return str.split(/\s+/).map(w =>
+    w.replace(/[^a-zA-Z0-9]/g,"").replace(/^./, c=>c.toUpperCase())
+  ).join("");
+}
+function getQueryParam(name) {
+  const urlParams = new URLSearchParams(window.location.search);
+  return urlParams.get(name);
+}
+
+/* parse quyen formats (kept for admin ui, but not used for hiding content here) */
+function parseQuyenToArray(q){
+  if(q === undefined || q === null) return [];
+  if(Array.isArray(q)) return q.map(x=>String(x).trim());
+  let s = String(q || "").trim();
+  if(s === "") return [];
+  try{
+    const p = JSON.parse(s);
+    if(Array.isArray(p)) return p.map(x=>String(x).trim());
+    if(typeof p === "string") return [p];
+  }catch(e){}
+  if(s.indexOf(",") >= 0) return s.split(",").map(x=>x.trim()).filter(x=>x!=="");
+  return [s];
+}
+
+/* set page title from slug (Category lookup) */
+function updatePageTitleFromSlug(slug){
+  if(!slug) return;
+  const cat = ALL_CATEGORIES.find(c => c.slug === slug);
+  if(cat){
+    document.getElementById("pageTitle").innerText = cat.title;
+  } else {
+    // fallback: hiển thị slug (đã format lại)
+    document.getElementById("pageTitle").innerText = slug;
+  }
+}
+
+/* show error */
+function showError(msg){
+  const loading = document.getElementById("loadingBox");
+  loading.classList.add('error');
+  loading.innerHTML = msg;
+}
+
+/* ---------- CORE: loadPage (HIỂN THỊ TẤT CẢ tài liệu)
+   Mục tiêu: BỎ qua kiểm tra quyền ở phía client — hiển thị mọi record backend public trả về.
+   Lưu ý: Nếu backend có endpoint tailieu-list trả filter theo role, ta KHÔNG gọi endpoint đó cho list.
+----------------------------------------------- */
+async function loadPage(){
+  try{
+    // cố gắng lấy token (chỉ để truyền cho trang detail nếu cần)
+    let token = null;
+    try{
+      const raw = localStorage.getItem("loggedInUser");
+      if(raw){
+        const parsed = JSON.parse(raw);
+        token = parsed && (parsed.token || (parsed.user && (parsed.user.token || parsed.user.accessToken)) || parsed.accessToken) || null;
+      }
+    }catch(e){ token = null; }
+
+    // LUÔN LẤY DỮ LIỆU TỪ WEBAPP PUBLIC (KHÔNG DÙNG token để filter)
+    let allDataJson = null;
+    try{
+      const resAll = await fetch(webAppUrl);
+      allDataJson = await resAll.json();
+    }catch(e){
+      allDataJson = null;
+    }
+
+    // try nhiều key khác nhau để tương thích: TaiLieuNganh, TaiLieu, items
+    const docsFromAll = (allDataJson && allDataJson.data && (allDataJson.data.TaiLieuNganh || allDataJson.data.TaiLieu || allDataJson.data.items)) ? (allDataJson.data.TaiLieuNganh || allDataJson.data.TaiLieu || allDataJson.data.items) : [];
+    const docsRaw = Array.isArray(docsFromAll) ? docsFromAll : [];
+
+    // categories để mapping tiêu đề nếu có
+    ALL_CATEGORIES = (allDataJson && allDataJson.data && allDataJson.data.Category) ? allDataJson.data.Category : [];
+
+    // === CRITICAL CHANGE: hiển thị mọi document backend trả lên (không kiểm tra quyen) ===
+    ALL_DOCUMENTS = docsRaw.slice(); // clone
+
+    // nếu không có docs -> thông báo
+    if(!ALL_DOCUMENTS || ALL_DOCUMENTS.length === 0){
+      showError("Không có tài liệu.");
+      return;
+    }
+
+    renderList(ALL_DOCUMENTS);
+
+    // cập nhật pageTitle nếu có slug trong URL
+    const slugFromURL = getQueryParam("slug");
+    if(slugFromURL) updatePageTitleFromSlug(slugFromURL);
+
+  }catch(err){
+    console.error("Lỗi loadPage:", err);
+    showError("Không thể tải dữ liệu.");
+  }
+}
+
+/* ---------- Render danh sách (giữ nguyên UI) ---------- */
+function renderList(data){
+  const list = document.getElementById("list");
+  const loading = document.getElementById("loadingBox");
+
+  const uniqueMap = new Map();
+
+  data.forEach(i=>{
+    if(!i || !i.title) return;
+
+    // không lọc slug nữa → hiển thị tất cả
+    const key = i.title.trim().toLowerCase();
+    if(!uniqueMap.has(key)){
+      uniqueMap.set(key, i);
+    }
+  });
+
+  list.innerHTML = "";
+  const frag = document.createDocumentFragment();
+
+  uniqueMap.forEach(i=>{
+    const div = document.createElement("div");
+    div.className = "item_list";
+    // lưu nguyên title vào data-title (escape để an toàn)
+    div.innerHTML = `
+      <div class="item" data-title="${escapeHtml(i.title)}">
+        <p>${escapeHtml(i.title)}</p>
+      </div>
+    `;
+    frag.appendChild(div);
+  });
+
+  list.appendChild(frag);
+  loading.style.display = "none";
+  list.style.display = "block";
+
+  list.onclick = e=>{
+    const item = e.target.closest(".item");
+    if(!item) return;
+
+    const slug = toSlug(item.dataset.title || "");
+
+    // lấy token từ localStorage (nếu có) để truyền sang detail page
+    let token = null;
+    try{
+      const raw = localStorage.getItem("loggedInUser");
+      if(raw){
+        const p = JSON.parse(raw);
+        token = p?.token || p?.user?.token || null;
+      }
+    }catch(e){}
+
+    window.location.href =
+      `TaiLieuNganh_detail.html?slug=${encodeURIComponent(slug)}`
+      + (token ? `&token=${encodeURIComponent(token)}` : "");
+  };
+}
+
+/* ---------- start ---------- */
+loadPage();
+</script>
+
+</body>
+</html>
