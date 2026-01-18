@@ -151,7 +151,6 @@ const searchKeyEl = document.getElementById("searchKey");
 /* ========== PARAM ========== */
 const params = new URLSearchParams(location.search);
 const key = (params.get("key") || "").trim();
-const keyLower = key.toLowerCase();
 searchKeyEl.textContent = key || "KHÔNG CÓ";
 
 /* ========== UTIL ========== */
@@ -164,16 +163,25 @@ function escapeHtml(str){
     .replace(/'/g,"&#39;");
 }
 
-function toSlug(text){
+/**
+ * Chuẩn hoá để so sánh tìm kiếm:
+ * - chuyển Unicode sang NFD rồi loại dấu (accent)
+ * - chuyển 'đ' -> 'd'
+ * - loại bỏ ký tự không phải chữ/số/khoảng trắng
+ * - đưa về chữ thường
+ */
+function normalizeSearch(text){
   return String(text||"")
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g,"")
-    .replace(/[^a-zA-Z0-9\s]/g,"")
+    .normalize("NFD")                       // tách dấu
+    .replace(/[\u0300-\u036f]/g, "")        // xoá dấu
+    .replace(/đ/g, "d").replace(/Đ/g, "D")  // đ -> d
+    .replace(/[^0-9a-zA-Z\s]/g, " ")        // giữ chữ, số, space
+    .replace(/\s+/g, " ")                   // gộp nhiều space
     .trim()
-    .replace(/\s+/g,"-")
     .toLowerCase();
 }
 
+/* ========== UI HELPERS ========== */
 function showLoading(){
   loadingBox.style.display="flex";
   results.style.display="none";
@@ -188,6 +196,8 @@ function hideLoading(){
 async function loadAndFilter(){
   showLoading();
 
+  results.innerHTML = ""; // clear trước khi hiển thị kết quả
+
   if(!key){
     hideLoading();
     results.innerHTML="<p style='text-align:center'>Không có từ khóa.</p>";
@@ -198,9 +208,20 @@ async function loadAndFilter(){
     const res = await fetch(webAppUrl).then(r=>r.json());
     const items = res?.ThuVienPhapLuatSo || res?.data?.ThuVienPhapLuatSo || [];
 
-    const filtered = items.filter(i =>
-      i.title && i.title.toLowerCase().includes(keyLower)
-    );
+    // chuẩn hoá từ khoá và tách thành các từ con (support multi-word search)
+    const normalizedKey = normalizeSearch(key);
+    const keyParts = normalizedKey.split(" ").filter(Boolean); // các từ tìm kiếm
+
+    const filtered = items.filter(i => {
+      if(!i.title) return false;
+      const normalizedTitle = normalizeSearch(i.title);
+
+      // tất cả từ trong keyParts phải xuất hiện trong tiêu đề (AND search).
+      // Nếu bạn muốn OR search (một trong các từ), đổi every -> some
+      const matched = keyParts.every(part => normalizedTitle.includes(part));
+
+      return matched;
+    });
 
     hideLoading();
 
@@ -212,7 +233,9 @@ async function loadAndFilter(){
     filtered.forEach(i=>{
       const div=document.createElement("div");
       div.className="item";
-      div.dataset.slug=toSlug(i.title);
+      // giữ slug dạng không dấu cho detail link
+      const slug = normalizeSearch(i.title).replace(/\s+/g, "-");
+      div.dataset.slug = slug;
       div.innerHTML=`
         <p>${escapeHtml(i.title)}</p>
         <span class="status">Có hiệu lực</span>
@@ -230,6 +253,7 @@ async function loadAndFilter(){
 
 loadAndFilter();
 </script>
+
 
 </body>
 </html>
