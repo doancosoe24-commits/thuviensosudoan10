@@ -100,6 +100,7 @@
       margin:0 0 6px 0;
       font-weight:700;
       font-size:16px;
+      color: inherit;
     }
 
     .item:hover{
@@ -159,19 +160,26 @@
 </main>
 
 <div id="footer"></div>
-
 <script src="main.js"></script>
 <script>
-const webAppUrl = "https://script.google.com/macros/s/AKfycbyU4WsoSjzzMtFmK_IYeGKNZ8QHdxgxdVk386LJXXuctMzCqIgrgzVBmR9uelwwfV1o3w/exec";
+const webAppUrl = "https://script.google.com/macros/s/AKfycbxPWbbwdGjo3VrbBfzlzCcpGfqCQ7aNHLCsjkzTKdp7h7flB34JZKbsDGZ11l8si0PpHA/exec";
 
-function normalizeTitle(text){
-  return String(text || "")
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g,"")
-    .replace(/[^a-zA-Z0-9Đđ]/g,"")
-    .toUpperCase();
+/**
+ * toSlug: đồng bộ với hàm bạn đưa
+ * - thay Đ/đ -> D/d
+ * - bỏ dấu, bỏ ký tự không phải a-zA-Z0-9
+ * - viết hoa ký tự đầu mỗi 'word' và nối liền (CamelCase)
+ */
+function toSlug(text){
+  if(!text) return "";
+  text = String(text).replace(/Đ/g,"D").replace(/đ/g,"d");
+  let str = text.normalize("NFD").replace(/[\u0300-\u036f]/g,"");
+  return str.split(/\s+/).map(w =>
+    w.replace(/[^a-zA-Z0-9]/g,"").replace(/^./, c=>c.toUpperCase())
+  ).join("");
 }
 
+/* giữ hàm escapeHtml nếu cần hiển thị raw vào innerHTML ở chỗ khác */
 function escapeHtml(str){
   if(!str) return "";
   return String(str)
@@ -183,6 +191,7 @@ function escapeHtml(str){
 }
 
 function getSlugFromURL(){
+  // lấy nguyên slug trong URL (không thay đổi)
   return new URL(window.location.href).searchParams.get("slug") || "";
 }
 
@@ -190,10 +199,11 @@ async function loadPage(){
   try{
     const pageSlug = getSlugFromURL();
     const res = await fetch(webAppUrl).then(r=>r.json());
-    const rawList = res.data.TaiLieuThamKhao || [];
+    const rawList = res.data && res.data.TaiLieuThamKhao ? res.data.TaiLieuThamKhao : [];
 
+    // lọc: so sánh bằng toSlug cho đồng bộ (so sánh không phân biệt hoa/thường để linh hoạt)
     const matched = rawList.filter(d =>
-      normalizeTitle(d.title) === pageSlug.toUpperCase()
+      toSlug(d.title).toLowerCase() === String(pageSlug || "").toLowerCase()
     );
 
     if(!matched.length){
@@ -202,8 +212,7 @@ async function loadPage(){
       return;
     }
 
-    document.getElementById("pageTitle").textContent =
-      matched[0].title.toUpperCase();
+    document.getElementById("pageTitle").textContent = matched[0].title.toUpperCase();
 
     renderList(matched);
 
@@ -221,26 +230,38 @@ function renderList(data){
   const frag=document.createDocumentFragment();
 
   data.forEach(i=>{
-    if(!i.name || !i.name.trim()) return;
-    const div=document.createElement("div");
-    div.className="item_list";
-    div.innerHTML=`
-      <div class="arrow"></div>
-      <div class="item" data-name="${escapeHtml(i.name)}">
-        <p>${escapeHtml(i.name)}</p>
-      </div>`;
-    frag.appendChild(div);
+    if(!i.name || !String(i.name).trim()) return;
+
+    const row = document.createElement("div");
+    row.className = "item_list";
+
+    const arrow = document.createElement("div");
+    arrow.className = "arrow";
+
+    const itemDiv = document.createElement("div");
+    itemDiv.className = "item";
+    // lưu giá trị gốc vào dataset (không escape) để toSlug dùng chính xác
+    itemDiv.dataset.name = i.name;
+
+    const p = document.createElement("p");
+    p.textContent = i.name;
+
+    itemDiv.appendChild(p);
+    row.appendChild(arrow);
+    row.appendChild(itemDiv);
+    frag.appendChild(row);
   });
 
   list.appendChild(frag);
   loading.style.display="none";
   list.style.display="block";
 
-  list.onclick=e=>{
-    const item=e.target.closest(".item");
+  list.onclick = e=>{
+    const item = e.target.closest(".item");
     if(item){
-      const slug=normalizeTitle(item.dataset.name);
-      window.location.href=`detail_tailieuthamkhao.html?slug=${slug}`;
+      const slug = toSlug(item.dataset.name || "");
+      // chuyển tới file detail với slug đã đồng bộ
+      window.location.href = `detail_tailieuthamkhao.html?slug=${encodeURIComponent(slug)}`;
     }
   };
 }
