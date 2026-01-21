@@ -171,7 +171,7 @@ h2{
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.10.100/pdf.min.js"></script>
 <script>
 const webAppUrl = "https://script.google.com/macros/s/AKfycbxPWbbwdGjo3VrbBfzlzCcpGfqCQ7aNHLCsjkzTKdp7h7flB34JZKbsDGZ11l8si0PpHA/exec";
-const slugFromURL = new URLSearchParams(window.location.search).get("slug");
+const slugFromURL = new URLSearchParams(window.location.search).get("slug") || "";
 
 const tabContent = document.getElementById("tabContent");
 const docTitle = document.getElementById("docTitle");
@@ -182,13 +182,14 @@ const underline = document.querySelector(".tab-underline");
 
 let currentData = null;
 
-/* ---------- HELPERS ---------- */
-function normalizeNameForComparison(name){
-  return String(name || "")
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g,"")
-    .replace(/[^a-zA-Z0-9Đđ]/g,"")
-    .toUpperCase();
+/* ---------- toSlug: đồng bộ với trang list (Đ/đ -> D/d, bỏ dấu, remove ký tự lạ, CamelCase) ---------- */
+function toSlug(text){
+  if(!text) return "";
+  text = String(text).replace(/Đ/g,"D").replace(/đ/g,"d");
+  let str = text.normalize("NFD").replace(/[\u0300-\u036f]/g,"");
+  return str.split(/\s+/).map(w =>
+    w.replace(/[^a-zA-Z0-9]/g,"").replace(/^./, c=>c.toUpperCase())
+  ).join("");
 }
 
 function getDriveID(link){
@@ -234,6 +235,7 @@ tabs.forEach(tab=>{
   tab.addEventListener("click",()=>{
     document.querySelector(".tab-btn.active")?.classList.remove("active");
     tab.classList.add("active");
+    updateUnderline(tab);
     showTab(currentData);
   });
 });
@@ -243,9 +245,11 @@ if(slugFromURL){
   fetch(`${webAppUrl}?ref=${encodeURIComponent(window.location.origin)}`)
     .then(res=>res.json())
     .then(res=>{
-      const rawList = res.data.TaiLieuThamKhao || [];
+      const rawList = (res.data && res.data.TaiLieuThamKhao) ? res.data.TaiLieuThamKhao : [];
+
+      // So sánh bằng toSlug(...) để đồng bộ hoàn toàn với trang list
       const matched = rawList.find(row =>
-        normalizeNameForComparison(row.name) === slugFromURL.toUpperCase()
+        toSlug(row.name).toLowerCase() === String(slugFromURL || "").toLowerCase()
       );
 
       if(matched){
@@ -259,6 +263,7 @@ if(slugFromURL){
       }
     })
     .catch(err=>{
+      console.error(err);
       loadingBox.style.display="none";
       docTitle.innerText="Lỗi tải dữ liệu";
       tabContent.style.display="block";
@@ -270,6 +275,11 @@ if(slugFromURL){
   tabContent.style.display="block";
   tabContent.innerHTML="<p>Không có slug.</p>";
 }
+
+/* cập nhật underline khi thay đổi kích thước */
+window.addEventListener('resize', () => {
+  updateUnderline(document.querySelector(".tab-btn.active"));
+});
 </script>
 
 </body>
